@@ -5,7 +5,6 @@ namespace keesiemeijer\WP_Plugin_Parser;
 class Parse_WP_Uses {
 
 	private $uses;
-	private $max_version;
 
 	/**
 	 * Constructor
@@ -17,9 +16,6 @@ class Parse_WP_Uses {
 			'max_version' => '',
 			'deprecated' => 0,
 		);
-
-		$wp_functions = $this->get_json( 'functions' );
-		$wp_classes = $this->get_json( 'classes' );
 
 		if ( ! empty( $uses['functions'] ) ) {
 			$wp_functions = $this->get_json( 'functions' );
