@@ -7,7 +7,7 @@
 			<tr>
 				<th scope='row'>
 					<label for="exclude_dir">
-						<?php _e( 'Exlude directories', 'wp-plugin-parser' ); ?>
+						<?php _e( 'Exclude directories', 'wp-plugin-parser' ); ?>
 					</label>
 				</th>
 				<td>
@@ -22,7 +22,7 @@
 			<tr>
 				<th scope='row'>
 					<label for="plugins">
-						<?php _ex( 'Plugins', 'Plugins form label text', 'wp-plugin-parser' ); ?>
+						<?php _ex( 'Plugin', 'Plugin form label text', 'wp-plugin-parser' ); ?>
 					</label>
 				</th>
 				<td>
