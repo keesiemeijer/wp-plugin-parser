@@ -24,3 +24,5 @@ composer install
 
 ## Settings Page.
 The settings page for this plugin is at `wp-admin` > `Tools` > `WP Plugin Parser`.
+
+![settings-page](https://user-images.githubusercontent.com/1436618/32406443-d38a9908-c178-11e7-9280-1b8672aa8e7e.png)

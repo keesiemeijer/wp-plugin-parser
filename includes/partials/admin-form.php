@@ -13,7 +13,7 @@
 				<td>
 					<input type="text" id="exclude_dir" name="exclude_dir" value="<?php echo $exclude_dirs_str; ?>" />
 					<p class="description">
-						<?php _e('Comma separated list of directories you want to exclude when parsing', '') ?><br/>
+						<?php _e('A comma separated list of directories you want to exclude when parsing.', '') ?><br/>
 						<?php _e('Use paths starting from the root plugin directory. (e.g. vendor, build, tests)', '') ?><br/>
 					</p>
 
