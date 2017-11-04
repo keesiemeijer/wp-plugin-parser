@@ -1,6 +1,6 @@
 # WP Plugin Parser
 
-Version: 1.0.0 
+Version: 1.0.0  
 Requires at least: 4.0  
 Tested up to: 4.9  
 Parsed JSON: 4.8
@@ -23,4 +23,4 @@ composer install
 ```
 
 ## Settings Page.
-The settings page for this plugin is at wp-admin > Tools > WP Plugin Parser.
+The settings page for this plugin is at `wp-admin` > `Tools` > `WP Plugin Parser`.
