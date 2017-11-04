@@ -114,7 +114,7 @@ class Admin_Page {
 	}
 
 	public function get_requested_plugin( $plugins ) {
-		if ( ! ( isset( $_POST['wp_parser_cleanup'] ) && isset( $_POST['plugins'] ) ) ) {
+		if ( ! ( isset( $_POST['wp_plugin_parser'] ) && isset( $_POST['plugins'] ) ) ) {
 			return false;
 		}
 

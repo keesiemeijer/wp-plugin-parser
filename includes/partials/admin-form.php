@@ -45,7 +45,7 @@
 				</td>
 			</tr>
 		</table>
-		<input id="wp_parser_cleanup" class="button button-primary" name="wp_parser_cleanup" value="Parse Plugin" type="submit">
+		<input id="wp_plugin_parser" class="button button-primary" name="wp_plugin_parser" value="Parse Plugin" type="submit">
 	</form><br/>
 	<?php 
 	if($parsed) {
