@@ -1,0 +1,30 @@
+{
+	"name"       : "keesiemeijer/wp-plugin-parser",
+	"description": "Parse plugins to see what WP functions and classes they use.",
+	"keywords"   : ["wordpress"],
+	"type"       : "wordpress-plugin",
+	"homepage"   : "https://github.com/keesiemeijer/wp-plugin-parser",
+	"license"    : "GPL-2.0+",
+	"authors"    : [
+		{
+			"name"    : "keesiemeijer",
+			"homepage": "https://github.com/keesiemeijer",
+			"role"    : "Developer"
+		}
+	],
+	"support"    : {
+		"issues": "https://github.com/keesiemeijer/wp-plugin-parser/issues"
+	},
+	"require"    : {
+		"php"                      : ">=5.4",
+		"wordpress/phpdoc-parser"  : "dev-master"
+	},
+	"extra": {
+		"installer-paths": {
+			"vendor/{$name}": ["wordpress/phpdoc-parser"]
+		}
+	},
+	"autoload"   : {
+		"classmap": ["includes"]
+	}
+}
