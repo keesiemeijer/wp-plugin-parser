@@ -23,9 +23,10 @@ class Admin_Page {
 
 	public function get_settings() {
 		$defaults = array(
-			'plugin' => '',
+			'plugin'       => '',
+			'plugin_name'  => '',
 			'exclude_dirs' => array(),
-			'wp_only' => '',
+			'wp_only'      => '',
 		);
 
 		$settings = get_option( 'wp_plugin_parser_settings' );
@@ -54,10 +55,12 @@ class Admin_Page {
 		if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			check_admin_referer( 'wp_plugin_parser_nonce', 'security' );
 			$requested_plugin = $this->get_requested_plugin( $plugins );
+			$plugin_name = isset( $plugins[ $requested_plugin ]['Name'] );
 			$settings = array(
-				'plugin' => $requested_plugin,
+				'plugin'       => $requested_plugin,
+				'plugin_name'  => $plugin_name ? $plugins[ $requested_plugin ]['Name'] : '',
 				'exclude_dirs' => $this->get_excluded_dirs(),
-				'wp_only' => ( isset( $_POST['wp_only'] ) ? 'on' : '' ),
+				'wp_only'      => ( isset( $_POST['wp_only'] ) ? 'on' : '' ),
 			);
 
 			if ( $old_settings != $settings ) {

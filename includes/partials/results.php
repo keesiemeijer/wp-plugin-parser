@@ -1,25 +1,29 @@
 <hr>
 <h2>Parse Results</h2>
-<?php if($wp_results['max_version']) : ?>
+<ul style="font-size: 14px;">
+	<li>
+		<?php printf( __( 'Plugin: %s', 'wp-plugin-parser' ), '<strong>' . $settings['plugin_name'] . '</strong' ) ; ?>
+	<li>
 
-<p>
-	<?php printf( __('This plugin "Requires at least" version: %s', 'wp-plugin-parser'), $wp_results['max_version'] ); ?>
-</p>
-<?php endif; ?>
+	<?php if ( $wp_results['max_version'] ) : ?>
+	<li>
+		<?php printf( __( 'Requires at least version: %s', 'wp-plugin-parser' ), $wp_results['max_version'] ); ?>
+	</li>
+	<?php endif; ?>
+	<?php if ( 0 < $wp_results['deprecated'] ) : ?>
+	<li style="color: red;">
+		<?php
+			/* translators: %d: Number of deprecated functions */
+			printf( _n( 'Warning: This plugin uses %d deprecated function', 'Warning: This plugin uses %d deprecated functions', $wp_results['deprecated'], 'wp-plugin-parser' ), $wp_results['deprecated'] );
+		?>
+	</li>
 
-<?php if( 0 < $wp_results['deprecated']) : ?>
-<p style="color: red;">
-
-	<?php
-		/* translators: %d: Number of deprecated functions */
-		printf( _n( 'Warning: This plugin uses %d deprecated function', 'Warning: This plugin uses %d deprecated functions', $wp_results['deprecated'], 'wp-plugin-parser' ), $wp_results['deprecated'] );
-	?>
-	
-</p>
 <?php else : ?>
-	<?php _e('No deprecated functions or classes found', '') ?>
+	<li>
+	<?php _e( 'No deprecated functions or classes found', 'wp-plugin-parser' ); ?>
+</li>
 <?php endif; ?>
-
+</ul>
 <?php
 foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 	$names = array();
@@ -56,15 +60,15 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 		<?php $i = 0; ?>
 		<?php  foreach ( $results[ $use_type ] as $type ) : ?>
 			<?php
-			$wp_type = false;
-			if ( in_array( $type, $names ) ) {
-				$index = array_search( $type, array_column( $wp_results[ $use_type ], 'title' ) );
-				$wp_type = $wp_results[ $use_type ][ $index ];
-			}
+				$wp_type = false;
+				if ( in_array( $type, $names ) ) {
+					$index = array_search( $type, array_column( $wp_results[ $use_type ], 'title' ) );
+					$wp_type = $wp_results[ $use_type ][ $index ];
+				}
 
-			if(!$wp_type && $settings['wp_only']) {
-				continue;
-			}
+				if ( ! $wp_type && $settings['wp_only'] ) {
+					continue;
+				}
 			?>
 
 			<tr<?php echo ( 0 === ( $i % 2 ) ) ? ' class="alternate"' : ''; ?>>
@@ -86,8 +90,8 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 					<?php endif; ?>
 				</td>
 			</tr>
-		<?php $i++ ?>
-	<?php endforeach; ?>
+			<?php $i++; ?>
+		<?php endforeach; ?>
 		</tbody>
 	</table>
 <?php endforeach; ?>

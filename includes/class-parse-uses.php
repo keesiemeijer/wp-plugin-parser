@@ -34,7 +34,6 @@ class Parse_Uses {
 	}
 
 	private function get_data( $nodes, $type ) {
-
 		foreach ( $nodes as $node ) {
 
 			if ( 'classes' === $type ) {
@@ -68,7 +67,6 @@ class Parse_Uses {
 			switch ( $uses_type ) {
 				case 'functions':
 					$this->uses['functions'] = array_merge( $this->uses['functions'], $names );
-					//$this->functions = array_merge( $this->functions, $names );
 					break;
 				case 'classes':
 					$this->uses['classes'] = array_merge( $this->uses['classes'], $names );
