@@ -1,5 +1,5 @@
 <hr>
-<h2>Parse Results</h2>
+<h2 id="parse-results">Parse Results</h2>
 <ul style="font-size: 14px;">
 	<li>
 		<?php printf( __( 'Plugin: %s', 'wp-plugin-parser' ), '<strong>' . $settings['plugin_name'] . '</strong' ) ; ?>
@@ -10,6 +10,13 @@
 		<?php printf( __( 'Requires at least version: %s', 'wp-plugin-parser' ), $wp_results['max_version'] ); ?>
 	</li>
 	<?php endif; ?>
+
+	<?php if ( ! isset( $results['warnings'] ) ) : ?>
+	<li>
+		<?php _e( 'No deprecated or blacklisted functions or classes found', 'wp-plugin-parser' ); ?>
+	</li>
+	<?php endif; ?>
+
 	<?php if ( 0 < $wp_results['deprecated'] ) : ?>
 	<li style="color: red;">
 		<?php
@@ -17,21 +24,35 @@
 			printf( _n( 'Warning: This plugin uses %d deprecated function', 'Warning: This plugin uses %d deprecated functions', $wp_results['deprecated'], 'wp-plugin-parser' ), $wp_results['deprecated'] );
 		?>
 	</li>
+	<?php endif; ?>
+	<?php if ( 0 < count( $blacklisted ) ) : ?>
+	<li style="color: red;">
+		<?php
+			/* translators: %d: Number of deprecated functions */
+			printf( _n( 'Warning: This plugin uses %d blacklisted function', 'Warning: This plugin uses %d blacklisted functions', count( $blacklisted ), 'wp-plugin-parser' ), count( $blacklisted ) );
+		?>
+	</li>
+	<?php endif; ?>
 
-<?php else : ?>
-	<li>
-	<?php _e( 'No deprecated functions or classes found', 'wp-plugin-parser' ); ?>
-</li>
-<?php endif; ?>
+
 </ul>
+<hr>
 <?php
 foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
-	$names = array();
+	$names             = array();
+	$use_type_warnings = isset( $results['warnings'] ) && in_array( $use_type, $results['warnings'] );
+
 	if ( ! empty( $wp_results[ $use_type ] ) ) {
 		$names = wp_list_pluck( $wp_results[ $use_type ], 'title' );
 	} else {
-		if ( empty( $results[ $use_type ] ) || $settings['wp_only'] ) {
+		if ( empty( $results[ $use_type ] ) ) {
 			continue;
+		}
+
+		if ( $settings['wp_only'] ) {
+			if ( ! $use_type_warnings ) {
+				continue;
+			}
 		}
 	}
 
@@ -40,7 +61,7 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 	} else {
 		$single = substr( $use_type, 0, -1 );
 	}
-	?>
+?>
 	<h3><?php echo  ucfirst( $use_type ); ?></h3>
 	<table class="widefat fixed">
 		 <thead>
@@ -51,9 +72,11 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 				<th scope='col'>
 					<?php _e( 'WordPress Since', 'wp-plugin-parser' ); ?>
 				</th>
-				<th scope='col'>
-					<?php _e( 'Deprecated', 'wp-plugin-parser' ); ?>
-				</th>
+				<?php if( $use_type_warnings ) : ?>
+					<th scope='col'>
+						<?php _e( 'Warning', 'wp-plugin-parser' ); ?>
+					</th>
+				<?php endif; ?>
 			</tr>
 		</thead>
 		<tbody>
@@ -67,7 +90,9 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 				}
 
 				if ( ! $wp_type && $settings['wp_only'] ) {
-					continue;
+					if( ! in_array( $type, $blacklisted ) ) {
+						continue;
+					}
 				}
 			?>
 
@@ -84,11 +109,20 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 						<?php echo $wp_type['since']; ?>
 					<?php endif; ?>
 				</td>
-				<td>
-					<?php if ( $wp_type && $wp_type['deprecated'] ) : ?>
-						<span style="color: red;"><strong>deprecated</strong></span>
-					<?php endif; ?>
-				</td>
+				<?php if( $use_type_warnings ) : ?>
+					<td>
+						<?php
+							$separator = '';
+							if ( $wp_type && $wp_type['deprecated'] ) :
+								$separator = ' - ';
+						?>
+							<span style="color: red;"><strong><?php _e( 'deprecated', 'wp-plugin-parser' ); ?></strong></span>
+						<?php endif; ?>
+						<?php if ( ( $use_type = 'functions' ) && in_array( $type, $blacklisted ) ) : ?>
+							<?php echo $separator; ?><span style="color: red;"><strong><?php _e( 'blacklisted', 'wp-plugin-parser' ); ?></strong></span>
+						<?php endif; ?>
+					</td>
+				<?php endif; ?>
 			</tr>
 			<?php $i++; ?>
 		<?php endforeach; ?>
