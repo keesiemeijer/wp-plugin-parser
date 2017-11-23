@@ -27,7 +27,7 @@ composer install
 ## What gets parsed
 All plugin files, functions and methods are parsed to retrieve the functions, classes and methods they use. The `since` and `deprecated` attributes are only checked for functions and classes. Meaning, methods are not (yet) flagged when `deprecated`, and are not used for calculating the `Requires at least` version.
 
-**Note**: Be aware that PHP language constructs (like `eval` or `isset`) are not (yet) picked up by the parser (or this plugin).
+**Note**: Be aware that PHP [language constructs](https://secure.php.net/manual/en/reserved.keywords.php) (like `eval` or `isset`) are not (yet) picked up by the parser (or this plugin).
 
 ## Settings Page.
 The settings page for this plugin is at `wp-admin` > `Tools` > `WP Plugin Parser`.
