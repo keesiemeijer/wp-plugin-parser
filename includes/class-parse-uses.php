@@ -20,12 +20,16 @@ class Parse_Uses {
 	}
 
 	private function get_file_data( $files ) {
-
 		foreach ( $files as $key => $file ) {
-			foreach ( array( 'uses', 'functions', 'classes' ) as $type ) {
+			if ( isset( $file['uses'] ) ) {
+				$this->add_uses( $file );
+			}
+
+			foreach ( array( 'functions', 'classes', ) as $type ) {
 				if ( ! isset( $file[ $type ] ) ) {
 					continue;
 				}
+
 				$this->get_data( $file[ $type ], $type );
 			}
 		}
@@ -57,6 +61,7 @@ class Parse_Uses {
 	}
 
 	private function add_uses( $node ) {
+
 		foreach ( array( 'functions', 'classes', 'methods' ) as $uses_type ) {
 
 			if ( ! isset( $node['uses'][ $uses_type ] ) ) {
@@ -72,6 +77,11 @@ class Parse_Uses {
 					$this->uses['classes'] = array_merge( $this->uses['classes'], $names );
 					break;
 				case 'methods':
+					$classes = wp_list_pluck( $node['uses']['methods'], 'class' );
+
+					foreach ( $classes as $classname ) {
+						$this->uses['classes'][] = $this->sanitize_name( $classname, 'classes' );
+					}
 					$this->uses['methods'] = array_merge( $this->uses['methods'], $names );
 					break;
 			}

@@ -19,7 +19,6 @@ class Admin_Page {
 			'wp-plugin-parser',
 			array( $this, 'admin_menu' )
 		);
-		//delete_option( 'wp_plugin_parser_settings' );
 	}
 
 	public function get_settings() {
@@ -49,8 +48,8 @@ class Admin_Page {
 		$warning          = '';
 		$parsed_files     = array();
 		$plugin_url       = admin_url( 'tools.php?page=wp-plugin-parser' );
+		$plugins          = get_plugins();
 
-		$plugins = get_plugins();
 		unset( $plugins['wp-plugin-parser/wp-plugin-parser.php'] );
 
 		if ( ! ( $plugins && is_array( $plugins ) ) ) {
@@ -60,9 +59,10 @@ class Admin_Page {
 		$old_settings = $this->get_settings();
 		if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			check_admin_referer( 'wp_plugin_parser_nonce', 'security' );
+
 			$requested_plugin = $this->get_requested_plugin( $plugins );
-			$plugin_name = isset( $plugins[ $requested_plugin ]['Name'] );
-			$settings = array(
+			$plugin_name      = isset( $plugins[ $requested_plugin ]['Name'] );
+			$settings         = array(
 				'plugin'              => $requested_plugin,
 				'plugin_name'         => $plugin_name ? $plugins[ $requested_plugin ]['Name'] : '',
 				'exclude_dirs'        => isset( $_POST['exclude_dirs'] ) ? $_POST['exclude_dirs'] : '',
@@ -70,13 +70,13 @@ class Admin_Page {
 				'wp_only'             => isset( $_POST['wp_only'] ) ? 'on' : '',
 			);
 
-			$settings = $this->apply_filters( $settings );
+			$settings = $this->apply_settings_filters( $settings );
 
 			if ( $old_settings != $settings ) {
 				update_option( 'wp_plugin_parser_settings', $settings );
 			}
 		} else {
-			$settings = $this->apply_filters( $old_settings );
+			$settings = $this->apply_settings_filters( $old_settings );
 		}
 
 		if ( $requested_plugin ) {
@@ -92,7 +92,7 @@ class Admin_Page {
 					$plugin_dir = $plugins_dir . $settings['plugin'];
 				}
 
-				$parsed_files = $this->parse_files( $plugin_dir, $settings['exclude_dirs'] );
+				$parsed_files = parse_files( $plugin_dir, $settings['exclude_dirs'] );
 				if ( is_string( $parsed_files ) ) {
 					$errors .= $parsed_files . '<br/>';
 				}
@@ -103,8 +103,9 @@ class Admin_Page {
 			include 'partials/admin-errors.php';
 		} else {
 			$exclude_dirs_str = implode( ', ', $settings['exclude_dirs'] );
-			$blacklist_str = implode( ', ', $settings['blacklist_functions'] );
-			$warnings = 0;
+			$blacklist_str    = implode( ', ', $settings['blacklist_functions'] );
+			$warnings         = 0;
+
 			if ( $parsed_files ) {
 				$uses             = new Parse_Uses( $parsed_files );
 				$results          = $uses->get_uses();
@@ -112,20 +113,18 @@ class Admin_Page {
 				$wp_results       = $wp_uses->get_uses();
 				$parsed           = true;
 
-				$blacklisted      = $this->get_blacklisted( $results, $settings['blacklist_functions'] );
+				$blacklisted      = get_blacklisted( $results, $settings['blacklist_functions'] );
 				$deprecated       = array(
-					'functions' => $this->get_deprecated( $wp_results, 'functions' ),
-					'classes'   => $this->get_deprecated( $wp_results, 'classes' ),
+					'functions' => get_deprecated( $wp_results, 'functions' ),
+					'classes'   => get_deprecated( $wp_results, 'classes' ),
 				);
 
 				if ( $blacklisted || $wp_results['deprecated'] ) {
-					$results = $this->sort( $results, $deprecated, $blacklisted );
+					$results = sort_results( $results, $deprecated, $blacklisted );
 				}
 
 				$warnings = (int) $wp_results['deprecated'] + count( $blacklisted );
 				$notice = sprintf( __( 'Parsed plugin: %s', 'wp-plugin-parser' ), $settings['plugin_name'] );
-				$notice .= " (<a href='{$plugin_url}#parse-results' >";
-				$notice .= __( 'See results below', 'wp-plugin-parser' ) . '</a>)';
 			}
 
 			include 'partials/admin-form.php';
@@ -133,7 +132,7 @@ class Admin_Page {
 	}
 
 
-	public function apply_filters( $settings ) {
+	public function apply_settings_filters( $settings ) {
 		foreach ( array( 'exclude_dirs', 'blacklist_functions' ) as $type ) {
 			if ( ! isset( $settings[ $type ] ) ) {
 				$settings[ $type ] = array();
@@ -152,7 +151,7 @@ class Admin_Page {
 		return $settings;
 	}
 
-	public function get_requested_plugin( $plugins ) {
+	private function get_requested_plugin( $plugins ) {
 		if ( ! ( isset( $_POST['wp_plugin_parser'] ) && isset( $_POST['plugins'] ) ) ) {
 			return false;
 		}
@@ -162,98 +161,5 @@ class Admin_Page {
 		}
 
 		return $_POST['plugins'];
-	}
-
-	public function get_blacklisted( $results, $blacklisted ) {
-		if ( ! $blacklisted || ! ( isset( $results['functions'] ) && $results['functions'] ) ) {
-			return array();
-		}
-
-		$blacklisted_functions = array();
-		foreach ( $results['functions'] as $function ) {
-			if ( in_array( $function, $blacklisted ) ) {
-				$blacklisted_functions[] = $function;
-			}
-		}
-
-		return $blacklisted_functions;
-	}
-
-	public function get_deprecated( $results, $use_type ) {
-		if ( ! isset( $results[ $use_type ] ) ) {
-			return array();
-		}
-
-		$deprecated = wp_list_filter( $results[ $use_type ], array( 'deprecated' => true ) );
-		$titles = $deprecated ? wp_list_pluck( $deprecated, 'title' ) : array();
-
-		return $titles;
-	}
-
-	public function sort( $results, $deprecated, $blacklisted ) {
-		$warnings = array();
-
-		foreach ( array( 'functions', 'classes' ) as $use_type ) {
-			$sort = array();
-
-			if ( ! isset( $results[ $use_type ] ) ) {
-				continue;
-			}
-
-			$names = array();
-			if ( isset( $deprecated[ $use_type ] ) && $deprecated[ $use_type ] ) {
-				$names = $deprecated[ $use_type ];
-			}
-
-			if ( 'functions' === $use_type ) {
-				$names = array_values( array_unique( array_merge( $names, $blacklisted ) ) );
-			}
-
-			foreach ( $results[ $use_type ] as $key => $type ) {
-				if ( in_array( $type , $names ) ) {
-					$sort[] = $type;
-					unset( $results[ $use_type ][ $key ] );
-				}
-			}
-
-			if ( $sort ) {
-				sort( $sort );
-				$results[ $use_type ] = array_merge( $sort, $results[ $use_type ] );
-				$warnings[] = $use_type;
-			}
-
-			$results[ $use_type ] = array_values( $results[ $use_type ] );
-		}
-
-		if ( $warnings ) {
-			$results['warnings'] = $warnings;
-		}
-
-		return $results;
-	}
-
-	public function parse_files( $path, $exclude_dirs ) {
-		$root    = trailingslashit( $path );
-		$is_file = is_file( $path );
-		$files   = $is_file ? array( $path ) : \WP_Parser\get_wp_files( $path );
-		$path    = $is_file ? dirname( $path ) : $path;
-
-		if ( $files instanceof \WP_Error ) {
-			return __( 'Could not parse files', 'wp-plugin-parser' );
-		}
-
-		foreach ( $files as $key => $file ) {
-			foreach ( $exclude_dirs as $dir ) {
-				if ( 0 === strpos( $file, $root . $dir . '/' ) ) {
-					unset( $files[ $key ] );
-				}
-			}
-		}
-
-		if ( ! function_exists( '\WP_Parser\parse_files' ) ) {
-			return __( 'WP Parser not found', 'wp-plugin-parser' );
-		}
-
-		return  \WP_Parser\parse_files( $files, $path );
 	}
 }

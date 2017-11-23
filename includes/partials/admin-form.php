@@ -7,13 +7,17 @@
 		<div class="updated">
 			<p>
 				<?php echo $notice; ?>
+				<?php if ( ! $warnings ) : ?>
+					 (<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
+				<?php endif; ?> 
 			</p>
 		</div>
 	<?php endif; ?>
 	<?php if ( $warnings ) : ?>
 		<div class="error">
 			<p>
-				<?php printf(_n('%d warning found for this plugin', '%d warnings found for this plugin', $warnings, 'wp-plugin-parser'), $warnings); ?>
+				<?php printf( _n( '%d warning found for this plugin', '%d warnings found for this plugin', $warnings, 'wp-plugin-parser' ), $warnings ); ?> 
+				(<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
 			</p>
 		</div>
 	<?php endif; ?>
@@ -77,8 +81,7 @@
 				<td>
 					<textarea name="blacklist_functions" rows="4" cols="50" id="blacklist_functions" class="large-text code"><?php echo esc_textarea( $blacklist_str ); ?></textarea>
 					<p class="description">
-						<?php _e( 'A comma separated list of functions that are dangerous (e.g. exec, eval, base64_decode)', 'wp-plugin-parser' ); ?><br>
-						<?php _e( 'Warnings are displayed if these functions are used in a plugin', 'wp-plugin-parser' ); ?>
+						<?php _e( 'A comma separated list of (dangerous) functions that should trigger a warning (e.g. exec, base64_decode)', 'wp-plugin-parser' ); ?><br>
 					</p>
 				</td>
 			</tr>

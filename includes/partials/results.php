@@ -18,17 +18,27 @@
 	<?php endif; ?>
 
 	<?php if ( 0 < $wp_results['deprecated'] ) : ?>
-	<li style="color: red;">
-		<?php
-			/* translators: %d: Number of deprecated functions */
-			printf( _n( 'Warning: This plugin uses %d deprecated function', 'Warning: This plugin uses %d deprecated functions', $wp_results['deprecated'], 'wp-plugin-parser' ), $wp_results['deprecated'] );
-		?>
-	</li>
+		<?php if(isset($deprecated['functions']) && $deprecated['functions'] ) : ?>
+				<li style="color: red;">
+					<?php
+						/* translators: %d: Number of deprecated functions */
+						printf( _n( 'Warning: This plugin uses %d deprecated function', 'Warning: This plugin uses %d deprecated functions', count( $deprecated['functions'] ), 'wp-plugin-parser' ), count( $deprecated['functions']) );
+					?>
+				</li>
+		<?php endif; ?>
+		<?php if(isset($deprecated['classes']) && $deprecated['classes'] ) : ?>
+				<li style="color: red;">
+					<?php
+						/* translators: %d: Number of deprecated functions */
+						printf( _n( 'Warning: This plugin uses %d deprecated class', 'Warning: This plugin uses %d deprecated classes', count( $deprecated['classes'] ), 'wp-plugin-parser' ), count( $deprecated['classes']) );
+					?>
+				</li>
+		<?php endif; ?>
 	<?php endif; ?>
 	<?php if ( 0 < count( $blacklisted ) ) : ?>
 	<li style="color: red;">
 		<?php
-			/* translators: %d: Number of deprecated functions */
+			/* translators: %d: Number of blacklisted functions */
 			printf( _n( 'Warning: This plugin uses %d blacklisted function', 'Warning: This plugin uses %d blacklisted functions', count( $blacklisted ), 'wp-plugin-parser' ), count( $blacklisted ) );
 		?>
 	</li>
@@ -41,9 +51,10 @@
 foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 	$names             = array();
 	$use_type_warnings = isset( $results['warnings'] ) && in_array( $use_type, $results['warnings'] );
+	$use_type_slug = ('methods' === $use_type) ? '' : $use_type . '/';
 
 	if ( ! empty( $wp_results[ $use_type ] ) ) {
-		$names = wp_list_pluck( $wp_results[ $use_type ], 'title' );
+			$names = wp_list_pluck( $wp_results[ $use_type ], 'title' );
 	} else {
 		if ( empty( $results[ $use_type ] ) ) {
 			continue;
@@ -99,7 +110,7 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 			<tr<?php echo ( 0 === ( $i % 2 ) ) ? ' class="alternate"' : ''; ?>>
 				<td>
 					<?php if ( $wp_type ) : ?>
-					<a href="https://developer.wordpress.org/reference/<?php echo $use_type; ?>/<?php echo $wp_type['slug']; ?>"><?php echo $type; ?></a>
+					<a href="https://developer.wordpress.org/reference/<?php echo $use_type_slug; ?><?php echo $wp_type['slug']; ?>"><?php echo $type; ?></a>
 					<?php else : ?>
 						<?php echo $type; ?>
 					<?php endif; ?>

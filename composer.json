@@ -25,6 +25,7 @@
 		}
 	},
 	"autoload"   : {
-		"classmap": ["includes"]
+		"classmap": ["includes"],
+		"files": ["includes/functions.php"]
 	}
 }
