@@ -5,7 +5,7 @@ Requires at least: 4.0
 Tested up to: 4.9  
 Parsed JSON: 4.9
 
-This plugin parses WordPress plugins to see which (PHP, WP, plugin) functions and classes they use. The [WP Parser](https://github.com/WordPress/phpdoc-parser) plugin is used to parse the plugins.
+This plugin parses WordPress plugins to see which (PHP, WP, plugin) functions and classes they use. The [WP Parser](https://github.com/WordPress/phpdoc-parser) is used to parse plugins.
 
 After parsing the minimum `Requires at least` version is calculated. Warnings are displayed if `deprecated` WordPress functions or classes are used by a plugin. Blacklisted functions, you can set in the settings page, also generate warnings if found.
 
@@ -27,7 +27,7 @@ composer install
 ## What gets parsed
 All plugin files, functions and methods are parsed to retrieve the functions, classes and methods they use. The `since` and `deprecated` attributes are only checked for functions and classes. Meaning, methods are not (yet) flagged when `deprecated`, and are not used for calculating the `Requires at least` version.
 
-**Note**: PHP [language constructs](https://secure.php.net/manual/en/reserved.keywords.php) like `eval()` are not picked up by the parser. This plugin finds the language constructs `die`, `eval` and `exit` with a regular expression. Be aware that this can lead to false positives.
+**Note**: [PHP language constructs](https://secure.php.net/manual/en/reserved.keywords.php) like `eval()` are not picked up by the parser. This plugin finds the language constructs `die()`, `eval()` and `exit()` with a regular expression. Be aware that this can lead to false positives.
 
 ## Settings Page.
 The settings page for this plugin is at `wp-admin` > `Tools` > `WP Plugin Parser`.
