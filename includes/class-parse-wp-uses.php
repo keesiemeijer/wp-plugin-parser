@@ -65,6 +65,11 @@ class Parse_WP_Uses {
 				continue;
 			}
 
+			// Not interested in the constructor method for WordPress methods.
+			if ( '__construct' === $method_class[1] ) {
+				continue;
+			}
+
 			$this->uses['methods'][] = array(
 				'title' => $method,
 				'class' =>  $class[0]['title'],

@@ -10,6 +10,7 @@ class Parse_Uses {
 			'functions' => array(),
 			'methods'   => array(),
 			'classes'   => array(),
+			'constructs' => array(),
 		);
 
 		$this->get_file_data( $files );
@@ -32,6 +33,8 @@ class Parse_Uses {
 
 				$this->get_data( $file[ $type ], $type );
 			}
+
+			$this->get_language_constructs( $file );
 		}
 
 		$this->sanitize_use_types();
@@ -58,6 +61,28 @@ class Parse_Uses {
 
 			$this->add_uses( $node );
 		}
+	}
+
+	private function get_language_constructs( $file ) {
+		if ( ! ( isset( $file['root'] ) && isset( $file['path'] ) ) ) {
+			return;
+		}
+
+		$path = trailingslashit( $file['root'] ) . $file['path'];
+		if ( ! is_readable( $path ) ) {
+			return;
+		}
+
+		$content = file_get_contents( $path );
+
+		preg_match_all( "/(^|\W)(eval|die|exit)\s*\(/", $content, $matches );
+		if ( ! ( isset( $matches[2] ) && $matches[2] ) ) {
+			return;
+		}
+
+		$constructs = array_unique( $matches[2] );
+		$this->uses['constructs'] = $constructs;
+		$this->uses['functions'] = array_merge( $this->uses['functions'], $constructs );
 	}
 
 	private function add_uses( $node ) {

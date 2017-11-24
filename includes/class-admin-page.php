@@ -123,6 +123,20 @@ class Admin_Page {
 					$results = sort_results( $results, $deprecated, $blacklisted );
 				}
 
+				$show_construct_info = false;
+				if(! empty($results['constructs']) ) {
+					$show_construct_info = true;
+					if( $settings['wp_only'] ) {
+						$show_construct_info = false;
+						foreach ( $results['constructs'] as $construct ) {
+							if(in_array($construct, $blacklisted)) {
+								$show_construct_info = true;
+								break;
+							}
+						}
+					}
+				}
+
 				$warnings = (int) $wp_results['deprecated'] + count( $blacklisted );
 				$notice = sprintf( __( 'Parsed plugin: %s', 'wp-plugin-parser' ), $settings['plugin_name'] );
 			}

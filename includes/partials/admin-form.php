@@ -16,7 +16,7 @@
 	<?php if ( $warnings ) : ?>
 		<div class="error">
 			<p>
-				<?php printf( _n( '%d warning found for this plugin', '%d warnings found for this plugin', $warnings, 'wp-plugin-parser' ), $warnings ); ?> 
+				<?php printf( _n( 'This plugin generates %d warning', 'This plugin generates %d warnings', $warnings, 'wp-plugin-parser' ), $warnings ); ?> 
 				(<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
 			</p>
 		</div>
