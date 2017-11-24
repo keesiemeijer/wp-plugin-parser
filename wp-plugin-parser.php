@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     WP Plugin Parser
  * Plugin URI:      https://github.com/keesiemeijer/wp-plugin-parser
- * Description:     Parse plugins to see what WP functions and classes they use.
+ * Description:     Parse plugins to see what functions, classes and methods they use.
  * Author:          keesiemeijer
  * Author URI:      https://github.com/keesiemeijer/
  * Text Domain:     wp-plugin-parser
