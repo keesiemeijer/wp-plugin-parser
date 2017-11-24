@@ -123,18 +123,12 @@ class Admin_Page {
 					$results = sort_results( $results, $deprecated, $blacklisted );
 				}
 
-				$show_construct_info = false;
-				if(! empty($results['constructs']) ) {
-					$show_construct_info = true;
-					if( $settings['wp_only'] ) {
-						$show_construct_info = false;
-						foreach ( $results['constructs'] as $construct ) {
-							if(in_array($construct, $blacklisted)) {
-								$show_construct_info = true;
-								break;
-							}
-						}
-					}
+				$show_construct_info = ! empty( $results['constructs'] );
+				if ( $show_construct_info && $settings['wp_only'] ) {
+					$show_construct_info = array_filter( $results['constructs'], function( $val ) use ( $blacklisted ) {
+							return in_array( $val, $blacklisted );
+						} );
+					$show_construct_info = ! empty( $show_construct_info );
 				}
 
 				$warnings = (int) $wp_results['deprecated'] + count( $blacklisted );
