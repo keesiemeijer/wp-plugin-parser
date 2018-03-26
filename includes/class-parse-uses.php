@@ -155,7 +155,7 @@ class Parse_Uses {
 
 	private function sanitize_use_types() {
 		foreach ( array( 'functions', 'classes', 'methods' ) as $type ) {
-			$this->uses[ $type ] = array_unique( $this->uses[ $type ]  );
+			$this->uses[ $type ] = array_filter( array_unique( $this->uses[ $type ]  ) );
 			sort( $this->uses[ $type ] );
 		}
 	}
