@@ -2,7 +2,11 @@
 <h2 id="parse-results">Parse Results</h2>
 <ul style="font-size: 14px;">
 	<li>
-		<?php printf( __( 'Plugin: %s', 'wp-plugin-parser' ), '<strong>' . $settings['plugin_name'] . '</strong' ) ; ?>
+		<?php printf( __( 'Plugin: %s', 'wp-plugin-parser' ), '<strong>' . $settings['plugin_name'] . '</strong>' ) ; ?>
+	<li>
+
+	<li>
+		<?php printf( __( 'Parsed PHP files: %s', 'wp-plugin-parser' ), $file_count ) ; ?>
 	<li>
 
 	<?php if ( $wp_results['max_version'] ) : ?>
