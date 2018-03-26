@@ -33,8 +33,8 @@
 				</th>
 				<td>
 					<select id="plugins" name="plugins">
-						<?php foreach ( $plugins as $plugin => $data ) : ?>
-							<option value='<?php echo $plugin; ?>'<?php selected( $settings['plugin'], $plugin ); ?>><?php echo $data['Name']; ?></option>";
+						<?php foreach ( $this->plugins as $plugin => $data ) : ?>
+							<option value='<?php echo $plugin; ?>'<?php selected( $settings['plugin_file'], $plugin ); ?>><?php echo $data['Name']; ?></option>";
 						<?php endforeach; ?>
 					</select>
 					<p class="description">
@@ -49,10 +49,11 @@
 					</label>
 				</th>
 				<td>
-					<input type="text" class="regular-text" id="exclude_dirs" name="exclude_dirs" value="<?php echo $exclude_dirs_str; ?>" />
+					<input type="text" class="large-text" id="exclude_dirs" name="exclude_dirs" value="<?php echo $exclude_dirs_str; ?>" />
 					<p class="description">
 						<?php _e( 'A comma separated list of directories you want to exclude when parsing.', 'wp-plugin-parser' ); ?><br/>
-						<?php _e( 'Use paths starting from the root plugin directory. (e.g. vendor, build, tests)', 'wp-plugin-parser' ); ?><br/>
+						<?php _e( 'Use paths starting from the root plugin directory. (e.g. build, tests, lib)', 'wp-plugin-parser' ); ?><br/>
+						<?php _e( 'The <code>vendor</code>, <code>node_modules</code> and <code>.git</code> directories are excluded by default.', 'wp-plugin-parser' ); ?><br/>
 					</p>
 
 				</td>
@@ -61,12 +62,11 @@
 				<th scope='row'>
 				</th>
 				<td>
-					<label for="wp_only">
-						<input id="wp_only" type="checkbox" name="wp_only" value="" <?php checked( $settings['wp_only'], 'on' ); ?>>
-						<?php _e( 'Display WordPress functions only', 'wp-plugin-parser' ); ?>
+					<label for="exclude_strict">
+						<input id="exclude_strict" type="checkbox" name="exclude_strict" value="" <?php checked( $settings['exclude_strict'], 'on' ); ?>>
+						<?php _e( 'Exclude everywhere', 'wp-plugin-parser' ); ?>
 						<p class="description">
-							<?php _e( 'Blacklisted functions (see below) are displayed regardless of this setting.', 'wp-plugin-parser' ); ?><br/>
-
+							<?php _e( "Exclude the directories (defined above) also if found in a plugin sub directory", 'wp-plugin-parser' ); ?><br/>
 						</p>
 					</label>
 
@@ -85,11 +85,26 @@
 					</p>
 				</td>
 			</tr>
+			<tr>
+				<th scope='row'>
+				</th>
+				<td>
+					<label for="wp_only">
+						<input id="wp_only" type="checkbox" name="wp_only" value="" <?php checked( $settings['wp_only'], 'on' ); ?>>
+						<?php _e( 'Display WordPress functions only', 'wp-plugin-parser' ); ?>
+						<p class="description">
+							<?php _e( 'Blacklisted functions (see below) are displayed regardless of this setting.', 'wp-plugin-parser' ); ?><br/>
+
+						</p>
+					</label>
+
+				</td>
+			</tr>
 		</table>
 		<input id="wp_plugin_parser" class="button button-primary" name="wp_plugin_parser" value="Parse Plugin" type="submit">
 	</form><br/>
 	<?php
-		if ( $parsed ) {
+		if ( $file_count ) {
 			include 'results.php';
 		}
 	?>
