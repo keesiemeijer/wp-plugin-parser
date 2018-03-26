@@ -16,4 +16,6 @@ if ( ! defined( 'WP_PLUGIN_PARSER_PLUGIN_DIR' ) ) {
 	define( 'WP_PLUGIN_PARSER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 }
 
-require WP_PLUGIN_PARSER_PLUGIN_DIR . 'includes/install.php';
+if ( version_compare( phpversion(), '5.3', '>=' ) ) {
+	require WP_PLUGIN_PARSER_PLUGIN_DIR . 'includes/install.php';
+}
