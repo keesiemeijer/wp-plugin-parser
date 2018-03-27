@@ -76,7 +76,7 @@
 						<input id="wp_only" type="checkbox" name="wp_only" value="" <?php checked( $settings['wp_only'], 'on' ); ?>>
 						<?php _e( 'Display WordPress functions only', 'wp-plugin-parser' ); ?>
 						<p class="description">
-							<?php _e( 'Blacklisted functions (see below) are displayed regardless of this setting.', 'wp-plugin-parser' ); ?><br/>
+							<?php _e( 'Blacklisted functions (see above) are displayed regardless of this setting.', 'wp-plugin-parser' ); ?><br/>
 
 						</p>
 					</label>

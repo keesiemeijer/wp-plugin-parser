@@ -95,7 +95,7 @@
 		<?php if( $compatible ) : ?>
 			<li>
 				<span style="color:green;<?php echo $margin; ?>" class="dashicons dashicons-yes"></span>
-				<?php printf( __( 'Plugin compatible with PHP version %s', 'wp-plugin-parser' ), $settings['php_version'] ); ?>
+				<?php printf( __( 'This plugin is compatible with PHP version %s', 'wp-plugin-parser' ), $settings['php_version'] ); ?>
 			</li>
 			<?php $margin = ''; ?>
 		<?php endif; ?>

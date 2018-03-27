@@ -38,4 +38,4 @@ All plugin files, functions and methods are parsed to retrieve the functions, cl
 ## Settings Page.
 The settings page for this plugin is at `wp-admin` > `Tools` > `WP Plugin Parser`.
 
-![settings-page](https://user-images.githubusercontent.com/1436618/33215860-a6e61dfa-d131-11e7-93ce-f5f89e4759eb.png)
+![settings-page](https://user-images.githubusercontent.com/1436618/37988701-e12e5f96-3201-11e8-9b73-9f4cae281b19.png)
