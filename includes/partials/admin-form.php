@@ -3,24 +3,7 @@
 	<p>
 		<?php _e( 'Parse plugins to see what PHP, WP or plugin functions and classes are used.', 'wp-plugin-parser' ); ?>
 	</p>
-	<?php if ( $notice ) : ?>
-		<div class="updated">
-			<p>
-				<?php echo $notice; ?>
-				<?php if ( ! $warnings ) : ?>
-					 (<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
-				<?php endif; ?> 
-			</p>
-		</div>
-	<?php endif; ?>
-	<?php if ( $warnings ) : ?>
-		<div class="error">
-			<p>
-				<?php printf( _n( 'This plugin generates %d warning', 'This plugin generates %d warnings', $warnings, 'wp-plugin-parser' ), $warnings ); ?> 
-				(<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
-			</p>
-		</div>
-	<?php endif; ?>
+    <?php include 'admin-notice.php'; ?>
 	<hr>
 	<form method="post" action="">
 		<?php wp_nonce_field( 'wp_plugin_parser_nonce', 'security' ); ?>
@@ -100,12 +83,39 @@
 
 				</td>
 			</tr>
+			<tr>
+				<th scope='row'>
+					<?php _e( 'PHP version', 'Plugin form label text', 'wp-plugin-parser' ); ?>:
+				</th>
+				<td>
+					<label for="check_version">
+						<input id="check_version" type="checkbox" name="check_version" value="" <?php checked( $settings['check_version'], 'on' ); ?>>
+						<?php _e( 'Test if the plugin is compatible with PHP version', 'wp-plugin-parser' ); ?>
+					</label>
+					
+					<label for="php_version">
+					<select id="php_version" name="php_version">
+						<?php foreach ( $php_versions as $version ) : ?>
+							<option value='<?php echo $version; ?>'<?php selected( $settings['php_version'], $version ); ?>><?php echo $version; ?></option>";
+						<?php endforeach; ?>
+					</select>
+					</label>
+				</td>
+			</tr>
 		</table>
 		<input id="wp_plugin_parser" class="button button-primary" name="wp_plugin_parser" value="Parse Plugin" type="submit">
 	</form><br/>
 	<?php
-		if ( $file_count ) {
+		if($request) {
 			include 'results.php';
+		
+			if ( $parsed_files && ! $parse_errors ) {
+				include 'parse-results.php';
+			}
+
+			if( $settings['check_version'] && $compat && ! $compat_errors) {
+				include 'compat.php';
+			}
 		}
 	?>
 </div>

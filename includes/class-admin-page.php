@@ -4,6 +4,7 @@ namespace keesiemeijer\WP_Plugin_Parser;
 class Admin_Page {
 
 	public $plugins;
+	public $compat;
 
 	/**
 	 * Constructor
@@ -48,6 +49,8 @@ class Admin_Page {
 			'blacklist_functions' => isset( $_POST['blacklist_functions'] ) ? $_POST['blacklist_functions'] : '',
 			'wp_only'             => isset( $_POST['wp_only'] ) ? 'on' : '',
 			'exclude_strict'      => isset( $_POST['exclude_strict'] ) ? 'on' : '',
+			'php_version'         => isset( $_POST['php_version'] ) ?  $_POST['php_version'] : '7.0',
+			'check_version'       => isset( $_POST['check_version'] ) ? 'on' : '',
 		);
 
 		$settings = $this->apply_settings_filters( $settings );
@@ -68,6 +71,10 @@ class Admin_Page {
 		$warnings         = 0;
 		$file_count       = 0;
 		$parsed_files     = array();
+		$compat           = '';
+		$parse_errors     = '';
+		$compat_errors    = '';
+		$compatible      = true;
 		$plugin_url       = admin_url( 'tools.php?page=wp-plugin-parser' );
 		$this->plugins    = get_plugins();
 
@@ -75,50 +82,62 @@ class Admin_Page {
 		$request  = isset( $settings['parse_request'] );
 
 		if ( $request ) {
-			$parsed_files = $this->parse_plugin( $settings );
-			$errors .= is_string( $parsed_files ) ? $parsed_files : '';
-		}
+			$parser = new File_Parser( $settings );
+			$errors = implode( '<br/>', $parser->get_log( 'errors' ) );
 
-		if ( $errors ) {
-			// Display errors
-			include 'partials/admin-errors.php';
-		} else {
-			$exclude_dirs_str = implode( ', ', $settings['exclude_dirs'] );
-			$blacklist_str    = implode( ', ', $settings['blacklist_functions'] );
-
-			if ( $request && $parsed_files ) {
-				$file_count = count( $parsed_files );
-				$uses       = new Parse_Uses( $parsed_files );
-				$results    = $uses->get_uses();
-				$wp_uses    = new Parse_WP_Uses( $results );
-				$wp_results = $wp_uses->get_uses();
-
-				$blacklisted = get_blacklisted( $results, $settings['blacklist_functions'] );
-				$deprecated  = array(
-					'functions' => get_deprecated( $wp_results, 'functions' ),
-					'classes'   => get_deprecated( $wp_results, 'classes' ),
-				);
-
-				if ( $blacklisted || $wp_results['deprecated'] ) {
-					// Moves blacklisted and deprecated to the top.
-					$results = sort_results( $results, $deprecated, $blacklisted );
-				}
-
-				$show_construct_info = ! empty( $results['constructs'] );
-				if ( $show_construct_info && $settings['wp_only'] ) {
-					$show_construct_info = array_filter( $results['constructs'], function( $val ) use ( $blacklisted ) {
-							return in_array( $val, $blacklisted );
-						} );
-					$show_construct_info = ! empty( $show_construct_info );
-				}
-
-				$warnings = (int) $wp_results['deprecated'] + count( $blacklisted );
-				$notice = sprintf( __( 'Parsed plugin: %s', 'wp-plugin-parser' ), $settings['plugin_name'] );
+			if ( ! $errors ) {
+				$parsed_files = $parser->parse_plugin_uses();
+				$parse_errors = implode( '<br/>', $parser->get_log( 'parse' ) );
 			}
 
-			// Display admin form and results
-			include 'partials/admin-form.php';
+			if ( ! $errors && $settings['check_version'] ) {
+				$compat = $parser->parse_php_compatibility();
+
+				$compat_errors = implode( '<br/>', $parser->get_log( 'compat' ) );
+				if ( ! $compat_errors ) {
+					$compatible = ! preg_match( '/(\d*) ERRORS?/i', $compat );
+				}
+			}
 		}
+
+		$exclude_dirs_str = implode( ', ', $settings['exclude_dirs'] );
+		$blacklist_str    = implode( ', ', $settings['blacklist_functions'] );
+		$php_versions     = get_php_versions();
+
+		if ( $request && $parsed_files ) {
+			$file_count = count( $parsed_files );
+			$uses       = new Parse_Uses( $parsed_files );
+			$results    = $uses->get_uses();
+			$wp_uses    = new Parse_WP_Uses( $results );
+			$wp_results = $wp_uses->get_uses();
+
+			$blacklisted = get_blacklisted( $results, $settings['blacklist_functions'] );
+			$deprecated  = array(
+				'functions' => get_deprecated( $wp_results, 'functions' ),
+				'classes'   => get_deprecated( $wp_results, 'classes' ),
+			);
+
+			if ( $blacklisted || $wp_results['deprecated'] ) {
+				// Moves blacklisted and deprecated to the top.
+				$results = sort_results( $results, $deprecated, $blacklisted );
+			}
+
+			$show_construct_info = ! empty( $results['constructs'] );
+			if ( $show_construct_info && $settings['wp_only'] ) {
+				$show_construct_info = array_filter( $results['constructs'], function( $val ) use ( $blacklisted ) {
+						return in_array( $val, $blacklisted );
+					} );
+				$show_construct_info = ! empty( $show_construct_info );
+			}
+
+			$warnings = (int) $wp_results['deprecated'] + count( $blacklisted );
+			$notice = sprintf( __( 'Parsed plugin: %s', 'wp-plugin-parser' ), $settings['plugin_name'] );
+		}
+
+		$warnings = ! $compatible ? $warnings + 1 : $warnings;
+
+		// Display admin form and results
+		include 'partials/admin-form.php';
 	}
 
 
@@ -152,25 +171,6 @@ class Admin_Page {
 		return $settings;
 	}
 
-	private function parse_plugin( $settings ) {
-		if ( ! $settings['plugin_file'] ) {
-			return __( "Requested plugin doesn't exist", 'wp-plugin-parser' );
-		}
-
-		$plugins_dir     = trailingslashit( dirname( WP_PLUGIN_PARSER_PLUGIN_DIR ) );
-		$plugin_root_dir = trailingslashit( dirname( $plugins_dir . $settings['plugin_file'] ) );
-
-		if ( ! is_readable( $plugins_dir . $settings['plugin_file'] ) ) {
-			return __( 'Could not read requested plugin files', 'wp-plugin-parser' ) . '<br/>';
-		}
-
-		if ( $plugins_dir === $plugin_root_dir ) {
-			// Single file plugins (not in a directory).
-			$plugin_root_dir = $plugins_dir . $settings['plugin_file'];
-		}
-
-		return parse_files( $plugin_root_dir, $settings );
-	}
 
 	private function plugin_exists( $plugin ) {
 		if ( ! ( $this->plugins && is_array( $this->plugins ) ) ) {

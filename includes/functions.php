@@ -17,6 +17,24 @@ function get_default_exclude_dirs() {
 }
 
 /**
+ * Get default directories to exclude.
+ *
+ * These directories are usualy from third party
+ *
+ * @return array Array with default directories to exclude.
+ */
+function get_php_versions() {
+	return array(
+		'5.2',
+		'5.3',
+		'5.4',
+		'5.5',
+		'5.6',
+		'7.0',
+	);
+}
+
+/**
  * Get default admin page settings.
  *
  * @return array Array with default admin page settings.
@@ -29,6 +47,8 @@ function get_default_settings() {
 		'blacklist_functions' => array(),
 		'wp_only'             => '',
 		'exclude_strict'      => '',
+		'php_version'         => '7.0',
+		'check_version'       => '',
 	);
 }
 
@@ -121,90 +141,4 @@ function sort_results( $results, $deprecated, $blacklisted ) {
 	}
 
 	return $results;
-}
-
-/**
- * Parse files for PHP functions, classes and class methods
- *
- * @param string $path     Path to plugin root directory or file
- * @param array  $settings Admin page settings.
- * @return array Array with parsed files.
- */
-function parse_files( $path, $settings ) {
-	if ( ! is_array( $settings ) ) {
-		return __( 'Current settings not found', 'wp-plugin-parser' );
-	}
-
-	$settings = array_merge( get_default_settings(), $settings );
-	$is_file  = is_file( $path );
-	$files    = $is_file ? array( $path ) : get_plugin_files( $path, $settings );
-	$path     = $is_file ? dirname( $path ) : $path;
-
-	if ( $files instanceof \WP_Error ) {
-		return __( 'Could not parse files', 'wp-plugin-parser' );
-	}
-
-	if ( ! function_exists( '\WP_Parser\parse_files' ) ) {
-		return __( 'WP Parser not found', 'wp-plugin-parser' );
-	}
-
-	return  \WP_Parser\parse_files( $files, $path );
-}
-
-/**
- * Get all PHP files in a plugin.
- *
- * @param string $path     Path to root directory of a plugin
- * @param array  $settings Admin page settings.
- * @return array           Array with PHP plugin file path's/
- */
-function get_plugin_files( $path, $settings ) {
-	$files       = array();
-	$path        = trailingslashit( $path );
-	$dirIterator = new \RecursiveDirectoryIterator( $path );
-
-	// Filter the excluded directories out.
-	$filterIterator = new \RecursiveCallbackFilterIterator( $dirIterator, function ( $current, $key, $iterator ) use ( $path, $settings ) {
-			if ( $current->isFile() && ( 'php' !== $current->getExtension() ) ) {
-				return false;
-			}
-
-			if ( ! $current->isDir() ) {
-				return true;
-			}
-
-			// Exclude directories if found in path
-			$directory_name = $current->getFilename();
-			if ( $settings['exclude_strict'] && in_array( $directory_name, $settings['exclude_dirs'] ) ) {
-				return false;
-			}
-
-			// Exclude directories found in root directory of a plugin.
-			$current_path = $current->getPathname();
-			foreach (  $settings['exclude_dirs'] as $dir ) {
-				if ( ( $path . untrailingslashit( $dir ) ) === $current_path  ) {
-					return false;
-				}
-			}
-
-			return true;
-		} );
-
-	$iterableFiles  = new \RecursiveIteratorIterator( $filterIterator );
-	try {
-		foreach ( $iterableFiles as $file ) {
-			if ( 'php' !== $file->getExtension() ) {
-				continue;
-			}
-
-			$files[] = $file->getPathname();
-		}
-	} catch ( \UnexpectedValueException $exc ) {
-		return new \WP_Error(
-			'unexpected_value_exception',
-			sprintf( 'Directory [%s] contained a directory we can not recurse into', $path )
-		);
-	}
-
-	return $files;
 }

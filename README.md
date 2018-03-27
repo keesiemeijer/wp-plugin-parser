@@ -5,9 +5,15 @@ Requires at least: 4.0
 Tested up to: 4.9  
 Parsed JSON: 4.9
 
-This WordPress plugin lets you see what functions, classes and methods are used by other plugins. It displays warnings for plugins that use `deprecated` or `blacklisted` functions. It also calculates the minimum `Requires at least` version needed for a plugin.
+This WordPress plugin lets you see what functions, classes and methods are used by other plugins.
+
+Features:
+* displays warnings for plugins that use `deprecated` or `blacklisted` functions.
+* checks if the plugin is compatible with a specific PHP versions.
+* calculates the minimum `Requires at least` version needed for a plugin.
 
 The plugins are parsed with the [WP Parser](https://github.com/WordPress/phpdoc-parser).
+The checks for PHP version compatibility is done with [PHPCompatibility](https://github.com/wimg/PHPCompatibility).
 
 To get the relevant WordPress information (since, deprecated etc) this plugin references JSON files (created by the [WP Parser JSON](https://github.com/keesiemeijer/wp-parser-json) plugin).
 
