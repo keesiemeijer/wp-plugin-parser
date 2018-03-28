@@ -4,7 +4,6 @@ namespace keesiemeijer\WP_Plugin_Parser;
 class Admin_Page {
 
 	public $plugins;
-	public $compat;
 
 	/**
 	 * Constructor
@@ -71,6 +70,7 @@ class Admin_Page {
 		$notice           = '';
 		$warnings         = 0;
 		$file_count       = 0;
+		$files            = array();
 		$parsed_uses      = array();
 		$blacklisted      = array();
 		$deprecated       = array();
@@ -109,7 +109,7 @@ class Admin_Page {
 		}
 
 		if ( $request && $parsed_uses ) {
-			$file_count = count( $parsed_uses );
+			$file_count = count( $files );
 			$wp_parser  = new WP_Uses_Parser( $parsed_uses );
 			$wp_uses    = $wp_parser->get_uses();
 
