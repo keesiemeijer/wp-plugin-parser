@@ -84,8 +84,7 @@ class File_Parser {
 			return false;
 		}
 
-		$files      = $is_file ? array( $path ) : $this->itarate_files( $path );
-		$this->root = $is_file ? dirname( $path ) : $path;
+		$files = $is_file ? array( $path ) : $this->itarate_files( $path );
 
 		if ( $files instanceof \WP_Error ) {
 			$this->logger->log( $files->get_error_message() );
