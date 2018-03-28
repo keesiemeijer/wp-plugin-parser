@@ -16,7 +16,7 @@ class PHP_Compat_Parser {
 	}
 
 	public function get_compat() {
-		return $this->compat;
+		return $this->compat ? $this->compat : '';
 	}
 
 	/**

@@ -54,10 +54,6 @@ class File_Parser {
 	 * @return array Array with PHP file path's.
 	 */
 	public function get_files() {
-		if ( ! $this->files ) {
-			$this->files_init();
-		}
-
 		return $this->files ? $this->files : array();
 	}
 
