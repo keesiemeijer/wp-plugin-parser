@@ -24,13 +24,6 @@ class File_Parser {
 	 */
 	private $files;
 
-	/**
-	 * Root path to search for PHP files.
-	 *
-	 * @var [type]
-	 */
-	private $root;
-
 	public function __construct( $settings ) {
 		$this->init( $settings );
 	}
@@ -38,13 +31,21 @@ class File_Parser {
 	/**
 	 * Set up properties and get the PHP file path's from a directory.
 	 *
-	 * @param array $settings Admin page settings.
+	 * @param array $settings Settings.
 	 */
 	public function init( $settings ) {
+		$defaults = array(
+			'root'           => '',
+			'exclude_dirs'   => array(),
+			'exclude_strict' => false,
+		);
+
+		$settings = is_array( $settings ) ? $settings : array();
+		$this->settings = array_merge( $defaults, (array) $settings );
+
 		$this->logger = new Logger();
-		$this->files = null;
-		$this->root = null;
-		$this->settings = array_merge( get_default_settings(), $settings );
+		$this->files  = null;
+
 		$this->files_init();
 	}
 
