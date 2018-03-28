@@ -41,6 +41,7 @@ function get_php_versions() {
  */
 function get_default_settings() {
 	return array(
+		'root'                => '',
 		'plugin_file'         => '',
 		'plugin_name'         => '',
 		'exclude_dirs'        => array(),
@@ -50,43 +51,6 @@ function get_default_settings() {
 		'php_version'         => '7.0',
 		'check_version'       => '',
 	);
-}
-
-/**
- * Get blacklisted functions.
- *
- * @param array $results     Array with parse results.
- * @param array $blacklisted Array with blacklisted functions.
- * @return array Array with blacklisted functions found in the parse results.
- */
-function get_blacklisted( $results, $blacklisted ) {
-	if ( ! ( is_array( $blacklisted ) && is_array( $results['functions'] ) ) ) {
-		return array();
-	}
-
-	$blacklisted_functions = array_filter( $results['functions'], function( $value ) use ( $blacklisted ) {
-			return in_array( $value, $blacklisted );
-		} );
-
-	return array_values( $blacklisted_functions );
-}
-
-/**
- * Get deprecated functions.
- *
- * @param array  $results Array with parse results.
- * @param string $type    'functions' or 'classes'.
- * @return array Array with deprecated function or class titles.
- */
-function get_deprecated( $results, $type ) {
-	if ( ! isset( $results[ $type ] ) ) {
-		return array();
-	}
-
-	$deprecated = wp_list_filter( $results[ $type ], array( 'deprecated' => true ) );
-	$titles = $deprecated ? wp_list_pluck( $deprecated, 'title' ) : array();
-
-	return $titles;
 }
 
 /**

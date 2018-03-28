@@ -2,7 +2,7 @@
 namespace keesiemeijer\WP_Plugin_Parser;
 
 
-class Parse_WP_Uses {
+class WP_Uses_Parser {
 
 	private $uses;
 
@@ -35,6 +35,24 @@ class Parse_WP_Uses {
 
 	public function get_uses() {
 		return $this->uses;
+	}
+
+	/**
+	 * Get deprecated functions.
+	 *
+	 * @param array  $uses Array with parse results.
+	 * @param string $type    'functions' or 'classes'.
+	 * @return array Array with deprecated function or class titles.
+	 */
+	public function get_deprecated( $type ) {
+		if ( ! isset( $this->uses[ $type ] ) ) {
+			return array();
+		}
+
+		$deprecated = wp_list_filter( $this->uses[ $type ], array( 'deprecated' => true ) );
+		$titles = $deprecated ? wp_list_pluck( $deprecated, 'title' ) : array();
+
+		return $titles;
 	}
 
 	private function get_json( $type ) {

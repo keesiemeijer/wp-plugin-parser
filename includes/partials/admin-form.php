@@ -109,7 +109,7 @@
 		if($request) {
 			include 'results.php';
 		
-			if ( $parsed_files && ! $parse_errors ) {
+			if ( $parsed_uses && ! $uses_errors ) {
 				include 'parse-results.php';
 			}
 

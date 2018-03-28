@@ -27,11 +27,11 @@
 	</div>
 <?php endif; ?>
 
-<?php if ( ! $errors && $parse_errors ) : ?>
+<?php if ( ! $errors && $uses_errors ) : ?>
 	<div class="error">
 		<p>
 			<?php _e('This plugin generated errors while parsing files', 'wp-plugin-parser'); ?><br/><br/>
-			<?php echo $parse_errors; ?>
+			<?php echo $uses_errors; ?>
 		</p>
 	</div>
 <?php endif; ?>

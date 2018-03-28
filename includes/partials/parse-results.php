@@ -2,16 +2,16 @@
 foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 	$names             = array();
 	$use_type_slug     = ('methods' === $use_type) ? '' : $use_type . '/';
-	$has_warnings      = isset( $results['warnings'] ) && in_array( $use_type, $results['warnings'] );
+	$has_warnings      = isset( $parsed_uses['warnings'] ) && in_array( $use_type, $parsed_uses['warnings'] );
 	$has_constructs    = false;
 	$has_since         = false;
 
-	if ( ! empty( $wp_results[ $use_type ] ) ) {
-			$names     = wp_list_pluck( $wp_results[ $use_type ], 'title' );
-			$has_since = array_filter( wp_list_pluck( $wp_results[ $use_type ], 'since' ) );
+	if ( ! empty( $wp_uses[ $use_type ] ) ) {
+			$names     = wp_list_pluck( $wp_uses[ $use_type ], 'title' );
+			$has_since = array_filter( wp_list_pluck( $wp_uses[ $use_type ], 'since' ) );
 			$has_since = ! empty( $has_since );
 	} else {
-		if ( empty( $results[ $use_type ] ) ) {
+		if ( empty( $parsed_uses[ $use_type ] ) ) {
 			continue;
 		}
 
@@ -36,12 +36,12 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 		<p>
 			<strong><?php _e('Notice', 'wp-plugin-parser') ?></strong>: 
 			<?php
-				$construct_count = count( $results['constructs'] );
+				$construct_count = count( $parsed_uses['constructs'] );
 			    $link_text =  _n( 'PHP language construct', 'PHP language constructs', $construct_count, 'wp-plugin-parser' );
 				$link = '<a href="https://secure.php.net/manual/en/reserved.keywords.php">' . $link_text . '</a>';
 
 				/* translators: 1: Number of PHP language constructs found, 2:link to PHP language construncts page */
-				printf( _n( ' %1$d %2$s found.', '%1$d %2$s found.', count( $results['constructs'] ), 'wp-plugin-parser' ), count( $results['constructs'] ), $link );
+				printf( _n( ' %1$d %2$s found.', '%1$d %2$s found.', count( $parsed_uses['constructs'] ), 'wp-plugin-parser' ), count( $parsed_uses['constructs'] ), $link );
 			?>
 		</p>
 		<?php endif; ?>
@@ -70,12 +70,12 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 			<tbody>
 			<?php $i = 0; ?>
 
-			<?php  foreach ( $results[ $use_type ] as $type ) : ?>
+			<?php  foreach ( $parsed_uses[ $use_type ] as $type ) : ?>
 				<?php
 					$wp_type = false;
 					if ( in_array( $type, $names ) ) {
-						$index = array_search( $type, array_column( $wp_results[ $use_type ], 'title' ) );
-						$wp_type = $wp_results[ $use_type ][ $index ];
+						$index = array_search( $type, array_column( $wp_uses[ $use_type ], 'title' ) );
+						$wp_type = $wp_uses[ $use_type ][ $index ];
 					}
 
 					if ( ! $wp_type && $settings['wp_only'] ) {
@@ -93,7 +93,7 @@ foreach ( array( 'functions', 'classes', 'methods' ) as $use_type ) :
 						<?php else : ?>
 							<?php
 							echo $type;
-							if( ( 'functions' === $use_type ) && in_array( $type, $results['constructs'] ) ) {
+							if( ( 'functions' === $use_type ) && in_array( $type, $parsed_uses['constructs'] ) ) {
 								echo ' <span>*</span>';
 								$has_constructs = true;
 							}

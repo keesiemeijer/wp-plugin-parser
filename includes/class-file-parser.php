@@ -3,30 +3,56 @@ namespace keesiemeijer\WP_Plugin_Parser;
 
 class File_Parser {
 
-	private $log;
+	/**
+	 * Log.
+	 *
+	 * @var array
+	 */
+	public $logger;
+
+	/**
+	 * Settings to parse for files.
+	 *
+	 * @var array
+	 */
 	private $settings;
+
+	/**
+	 * PHP file path's from a directory.
+	 *
+	 * @var array
+	 */
 	private $files;
-	private $path;
+
+	/**
+	 * Root path to search for PHP files.
+	 *
+	 * @var [type]
+	 */
+	private $root;
 
 	public function __construct( $settings ) {
 		$this->init( $settings );
 	}
 
+	/**
+	 * Set up properties and get the PHP file path's from a directory.
+	 *
+	 * @param array $settings Admin page settings.
+	 */
 	public function init( $settings ) {
-		$this->log = array();
+		$this->logger = new Logger();
 		$this->files = null;
-		$this->path = null;
+		$this->root = null;
 		$this->settings = array_merge( get_default_settings(), $settings );
 		$this->files_init();
 	}
 
-	public function get_log( $key = 'errors' ) {
-		if ( isset( $this->log[ $key ] ) ) {
-			return $this->log[ $key ];
-		}
-		return array();
-	}
-
+	/**
+	 * Public function to get the PHP file path's of a directory.
+	 *
+	 * @return array Array with PHP file path's.
+	 */
 	public function get_files() {
 		if ( ! $this->files ) {
 			$this->files_init();
@@ -35,103 +61,49 @@ class File_Parser {
 		return $this->files ? $this->files : array();
 	}
 
-	private function log( $msg = '', $key = 'errors' ) {
-		$this->log[ $key ][] = $msg;
-	}
-
+	/**
+	 * Get al the PHP file path's from a directory.
+	 *
+	 * Sets the class properties files and path.
+	 *
+	 * @return false|void Returns false if files are not found.
+	 */
 	private function files_init() {
-		if ( ! $this->settings['plugin_file'] ) {
-			$this->log( __( "Requested plugin doesn't exist", 'wp-plugin-parser' ) );
+		if ( ! $this->settings['root'] ) {
+			$this->logger->log( __( "Root directory not found", 'wp-plugin-parser' ) );
 			return false;
 		}
 
-		$plugins_dir = trailingslashit( dirname( WP_PLUGIN_PARSER_PLUGIN_DIR ) );
-		$path        = trailingslashit( dirname( $plugins_dir . $this->settings['plugin_file'] ) );
+		$path    = $this->settings['root'];
+		$is_file = is_file( $path );
 
-		if ( ! is_readable( $plugins_dir . $this->settings['plugin_file'] ) ) {
-			$this->log( __( 'Could not read file', 'wp-plugin-parser' ) );
+		if ( ! is_readable( $path ) ) {
+			if ( $is_file ) {
+				$this->logger->log( sprintf( __( 'Could not read file %s', 'wp-plugin-parser' ), '<code>' . $path . '</code>'  ) );
+			} else {
+				$this->logger->log( sprintf( __( 'Could not read directory %s', 'wp-plugin-parser' ), '<code>' . $path . '</code>' ) );
+			}
+
 			return false;
 		}
 
-		if ( $plugins_dir === $path ) {
-			// Single file plugins (not in a directory).
-			$path = $plugins_dir . $this->settings['plugin_file'];
-		}
-
-		$is_file    = is_file( $path );
 		$files      = $is_file ? array( $path ) : $this->itarate_files( $path );
-		$this->path = $is_file ? dirname( $path ) : $path;
+		$this->root = $is_file ? dirname( $path ) : $path;
 
 		if ( $files instanceof \WP_Error ) {
-			$this->log( __( "Could not find requested files", 'wp-plugin-parser' ) );
+			$this->logger->log( $files->get_error_message() );
 			return false;
 		}
 
 		$this->files = $files;
 	}
 
-	public function parse_php_compatibility() {
-		if ( ! class_exists( 'PHPCompatibility\PHPCSHelper' ) ) {
-			$this->log( __( 'PHPCompatibility not installed', 'wp-plugin-parser' ), 'compat' );
-			return false;
-		}
-
-		if ( ! class_exists( 'PHP_CodeSniffer_CLI' ) ) {
-			$this->log( __( 'PHP CodeSniffer not installed', 'wp-plugin-parser' ), 'compat' );
-			return false;
-		}
-		$version = $this->settings['php_version'];
-		$php_versions = get_php_versions();
-		if ( ! in_array( $version, $php_versions ) ) {
-			$this->log( __( 'Invalid PHP version used for compatibility check', 'wp-plugin-parser' ), 'compat' );
-			return false;
-		}
-
-		if ( ! $this->files ) {
-			$this->log( __( 'No files found for compatibility check', 'wp-plugin-parser' ), 'compat' );
-			return false;
-		}
-
-		$args = array(
-			'files'       => $this->files,
-			'testVersion' => $version,
-			'standard'    => 'PHPCompatibility',
-			'reportWidth' => '9999',
-			'extensions'  => array( 'php' ),
-		);
-
-		call_user_func( array( 'PHPCompatibility\PHPCSHelper', 'setConfigData' ), 'testVersion', $args['testVersion'], true );
-
-		$cli  = new \PHP_CodeSniffer_CLI();
-
-		ob_start();
-		$cli->process( $args );
-		$report = ob_get_clean();
-
-		return $report;
-	}
-
-	public function parse_plugin_uses() {
-		if ( ! function_exists( '\WP_Parser\parse_files' ) ) {
-			$this->log( __( 'WP Parser not installed', 'wp-plugin-parser' ), 'parse' );
-			return false;
-		}
-
-
-		if ( ! $this->files || ! $this->path ) {
-			$this->log( __( 'No files found to parse', 'wp-plugin-parser' ), 'parse' );
-			return false;
-		}
-
-		return  \WP_Parser\parse_files( $this->files, $this->path );
-	}
-
 	/**
-	 * Get all PHP files in a plugin.
+	 * Get all PHP files in a directory.
 	 *
-	 * @param string $path     Path to root directory of a plugin
-	 * @param array  $settings Admin page settings.
-	 * @return array           Array with PHP plugin file path's/
+	 * @param string $path     Path to root directory.
+	 * @param array  $settings Settings.
+	 * @return array           Array with PHP file path's/
 	 */
 	private function itarate_files( $path ) {
 		$settings    = $this->settings;
@@ -155,7 +127,7 @@ class File_Parser {
 					return false;
 				}
 
-				// Exclude directories found in root directory of a plugin.
+				// Exclude directories found in the root directory.
 				$current_path = $current->getPathname();
 				foreach (  $settings['exclude_dirs'] as $dir ) {
 					if ( ( $path . untrailingslashit( $dir ) ) === $current_path  ) {

@@ -44,6 +44,7 @@ class Admin_Page {
 		$plugin = $this->get_requested_plugin();
 		$settings = array(
 			'plugin_file'         => $plugin,
+			'root'                => $plugin ? $this->get_plugin_root( $plugin ) : '',
 			'plugin_name'         => $plugin ? $this->plugins[ $plugin ]['Name'] : '',
 			'exclude_dirs'        => isset( $_POST['exclude_dirs'] ) ? $_POST['exclude_dirs'] : '',
 			'blacklist_functions' => isset( $_POST['blacklist_functions'] ) ? $_POST['blacklist_functions'] : '',
@@ -70,67 +71,67 @@ class Admin_Page {
 		$notice           = '';
 		$warnings         = 0;
 		$file_count       = 0;
-		$parsed_files     = array();
+		$parsed_uses      = array();
+		$blacklisted      = array();
+		$deprecated       = array();
 		$compat           = '';
-		$parse_errors     = '';
+		$uses_errors      = '';
 		$compat_errors    = '';
-		$compatible      = true;
+		$compatible       = true;
 		$plugin_url       = admin_url( 'tools.php?page=wp-plugin-parser' );
 		$this->plugins    = get_plugins();
-
-		$settings = $this->get_admin_settings();
-		$request  = isset( $settings['parse_request'] );
+		$settings         = $this->get_admin_settings();
+		$request          = isset( $settings['parse_request'] );
+		$exclude_dirs_str = implode( ', ', $settings['exclude_dirs'] );
+		$blacklist_str    = implode( ', ', $settings['blacklist_functions'] );
+		$php_versions     = get_php_versions();
 
 		if ( $request ) {
-			$parser = new File_Parser( $settings );
-			$errors = implode( '<br/>', $parser->get_log( 'errors' ) );
+			$file_parser = new File_Parser( $settings );
+			$files  = $file_parser->get_files();
+			$errors = $this->get_errors( $file_parser );
 
-			if ( ! $errors ) {
-				$parsed_files = $parser->parse_plugin_uses();
-				$parse_errors = implode( '<br/>', $parser->get_log( 'parse' ) );
+			if ( ! $errors && $files ) {
+				$uses_parser = new Uses_Parser( $files, $settings['root'] );
+				$parsed_uses = $uses_parser->get_uses();
+				$blacklisted = $uses_parser->get_blacklisted( $settings['blacklist_functions'] );
+				$uses_errors = $this->get_errors( $uses_parser );
 			}
 
-			if ( ! $errors && $settings['check_version'] ) {
-				$compat = $parser->parse_php_compatibility();
-
-				$compat_errors = implode( '<br/>', $parser->get_log( 'compat' ) );
+			if ( ! $errors && $files && $settings['check_version'] ) {
+				$compat_parser = new PHP_Compat_Parser( $files, $settings['php_version'] );
+				$compat        = $compat_parser->get_compat();
+				$compat_errors = $this->get_errors( $compat_parser );
 				if ( ! $compat_errors ) {
 					$compatible = ! preg_match( '/(\d*) ERRORS?/i', $compat );
 				}
 			}
 		}
 
-		$exclude_dirs_str = implode( ', ', $settings['exclude_dirs'] );
-		$blacklist_str    = implode( ', ', $settings['blacklist_functions'] );
-		$php_versions     = get_php_versions();
+		if ( $request && $parsed_uses ) {
+			$file_count = count( $parsed_uses );
+			$wp_parser  = new WP_Uses_Parser( $parsed_uses );
+			$wp_uses    = $wp_parser->get_uses();
 
-		if ( $request && $parsed_files ) {
-			$file_count = count( $parsed_files );
-			$uses       = new Parse_Uses( $parsed_files );
-			$results    = $uses->get_uses();
-			$wp_uses    = new Parse_WP_Uses( $results );
-			$wp_results = $wp_uses->get_uses();
-
-			$blacklisted = get_blacklisted( $results, $settings['blacklist_functions'] );
 			$deprecated  = array(
-				'functions' => get_deprecated( $wp_results, 'functions' ),
-				'classes'   => get_deprecated( $wp_results, 'classes' ),
+				'functions' => $wp_parser->get_deprecated( 'functions' ),
+				'classes'   => $wp_parser->get_deprecated( 'classes' ),
 			);
 
-			if ( $blacklisted || $wp_results['deprecated'] ) {
+			if ( $blacklisted || $wp_uses['deprecated'] ) {
 				// Moves blacklisted and deprecated to the top.
-				$results = sort_results( $results, $deprecated, $blacklisted );
+				$parsed_uses = sort_results( $parsed_uses, $deprecated, $blacklisted );
 			}
 
-			$show_construct_info = ! empty( $results['constructs'] );
+			$show_construct_info = ! empty( $parsed_uses['constructs'] );
 			if ( $show_construct_info && $settings['wp_only'] ) {
-				$show_construct_info = array_filter( $results['constructs'], function( $val ) use ( $blacklisted ) {
+				$show_construct_info = array_filter( $parsed_uses['constructs'], function( $val ) use ( $blacklisted ) {
 						return in_array( $val, $blacklisted );
 					} );
 				$show_construct_info = ! empty( $show_construct_info );
 			}
 
-			$warnings = (int) $wp_results['deprecated'] + count( $blacklisted );
+			$warnings = (int) $wp_uses['deprecated'] + count( $blacklisted );
 			$notice = sprintf( __( 'Parsed plugin: %s', 'wp-plugin-parser' ), $settings['plugin_name'] );
 		}
 
@@ -169,6 +170,26 @@ class Admin_Page {
 		}
 
 		return $settings;
+	}
+
+	function get_errors( $obj ) {
+		return implode( '<br/>', $obj->logger->get_log() );
+	}
+
+	private function get_plugin_root( $plugin ) {
+		if ( ! $this->plugin_exists( $plugin ) ) {
+			return '';
+		}
+
+		$plugins_dir = trailingslashit( dirname( WP_PLUGIN_PARSER_PLUGIN_DIR ) );
+		$root        = trailingslashit( dirname( $plugins_dir . $plugin ) );
+
+		if ( $plugins_dir === $root ) {
+			// Single file plugins (not in a directory).
+			$root = $plugins_dir . $plugin;
+		}
+
+		return $root;
 	}
 
 

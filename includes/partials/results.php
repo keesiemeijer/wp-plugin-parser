@@ -10,7 +10,7 @@
 		<li>
 	<?php endif; ?>
 
-	<?php if( $errors || $parse_errors ) : ?>
+	<?php if( $errors || $uses_errors ) : ?>
 		<li style="color: red;<?php echo $margin; ?>">
 			<span class="dashicons dashicons-no"></span>
 			<?php _e( 'Warning: This plugin is not parsed for functions and classes because of parsing errors', 'wp-plugin-parser' ); ?>
@@ -25,27 +25,27 @@
 		</li>
 	<?php endif; ?>
 
-	<?php if ( $parsed_files && ! $parse_errors ) : ?>
+	<?php if ( $parsed_uses && ! $uses_errors ) : ?>
 		<!-- Parse Results -->
 		<li style="margin-top: 1em;">
 			<?php printf( __( 'Parsed PHP files: %s', 'wp-plugin-parser' ), $file_count ) ; ?>
 		<li>
 
-		<?php if ( $wp_results['max_version'] ) : ?>
+		<?php if ( $wp_uses['max_version'] ) : ?>
 			<li>
-				<?php printf( __( 'Requires at least version: %s', 'wp-plugin-parser' ), $wp_results['max_version'] ); ?>
+				<?php printf( __( 'Requires at least version: %s', 'wp-plugin-parser' ), $wp_uses['max_version'] ); ?>
 			</li>
 		<?php endif; ?>
 
 		<?php $margin = ' margin-top: 1em;'; ?>
-		<?php if ( ! isset( $results['warnings'] ) ) : ?>
+		<?php if ( ! isset( $parsed_uses['warnings'] ) ) : ?>
 			<li style="<?php echo trim( $margin ); ?>">
 				<span style="color:green;" class="dashicons dashicons-yes"></span><?php _e( 'No deprecated or blacklisted functions or classes found', 'wp-plugin-parser' ); ?>
 			</li>
 			<?php $margin = ''; ?>
 		<?php endif; ?>
 
-		<?php if ( 0 < $wp_results['deprecated'] ) : ?>
+		<?php if ( 0 < $wp_uses['deprecated'] ) : ?>
 
 			<?php if( isset( $deprecated['functions'] ) && $deprecated['functions'] ) : ?>
 				<li style="color: red;<?php echo $margin; ?>">

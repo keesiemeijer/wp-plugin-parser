@@ -1,11 +1,17 @@
 <?php
 namespace keesiemeijer\WP_Plugin_Parser;
 
-class Parse_Uses {
+class Uses_Parser {
 
-	public $uses;
+	private $uses;
+	public $logger;
 
-	public function __construct( $files ) {
+	public function __construct( $files, $root ) {
+		$this->parse_init( $files, $root );
+	}
+
+	public function parse_init( $files, $root ) {
+		$this->logger = new Logger();
 		$this->uses = array(
 			'functions' => array(),
 			'methods'   => array(),
@@ -13,15 +19,52 @@ class Parse_Uses {
 			'constructs' => array(),
 		);
 
-		$this->get_file_data( $files );
+		$parsed_files = $this->parse_uses( $files, $root );
+
+		if ( $parsed_files ) {
+			$this->get_file_data( $parsed_files );
+		}
+	}
+
+	/**
+	 * Parse PHP files for functions and classes.
+	 *
+	 * @return array Parsed files.
+	 */
+	public function parse_uses( $files, $root ) {
+		if ( ! function_exists( '\WP_Parser\parse_files' ) ) {
+			$this->logger->log( __( 'WP Parser not installed', 'wp-plugin-parser' ) );
+			return false;
+		}
+
+
+		if ( ! $files || ! $root ) {
+			$this->logger->log( __( 'No files found to parse', 'wp-plugin-parser' ) );
+			return false;
+		}
+
+		return \WP_Parser\parse_files( $files, $root );
 	}
 
 	public function get_uses() {
 		return $this->uses;
 	}
 
-	private function get_file_data( $files ) {
-		foreach ( $files as $key => $file ) {
+	public function get_blacklisted( $blacklisted ) {
+
+		if ( ! is_array( $blacklisted ) ) {
+			return array();
+		}
+
+		$functions = array_filter( $this->uses['functions'], function( $value ) use ( $blacklisted ) {
+				return in_array( $value, $blacklisted );
+			} );
+
+		return array_values( $functions );
+	}
+
+	private function get_file_data( $parsed_files ) {
+		foreach ( $parsed_files as $key => $file ) {
 			if ( isset( $file['uses'] ) ) {
 				$this->add_uses( $file );
 			}
