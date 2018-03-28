@@ -84,7 +84,7 @@
 
 	<?php if( $settings['check_version'] && ! $errors && ! $compat_errors ) : ?>
 		<!-- Copatibility results -->
-		<?php if ( ! $compatible && $compat ) : ?>
+		<?php if ( ! $is_compatible && $compat ) : ?>
 			<li style="color: red;<?php echo $margin; ?>">
 				<span class="dashicons dashicons-no"></span>
 				<?php printf( __( 'Warning: This plugin was found not to be compatible with PHP version: %s.', 'wp-plugin-parser' ), $settings['php_version'] ); ?>
@@ -92,7 +92,7 @@
 			</li>
 			<?php $margin = ''; ?>
 		<?php endif; ?>
-		<?php if( $compatible ) : ?>
+		<?php if( $is_compatible ) : ?>
 			<li>
 				<span style="color:green;<?php echo $margin; ?>" class="dashicons dashicons-yes"></span>
 				<?php printf( __( 'This plugin is compatible with PHP version %s', 'wp-plugin-parser' ), $settings['php_version'] ); ?>

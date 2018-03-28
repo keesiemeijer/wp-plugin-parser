@@ -67,17 +67,17 @@ class Admin_Page {
 
 	public function admin_menu() {
 		$errors           = '';
+		$uses_errors      = '';
+		$compat_errors    = '';
 		$notice           = '';
+		$compat           = '';
 		$warnings         = 0;
 		$file_count       = 0;
 		$files            = array();
 		$parsed_uses      = array();
 		$blacklisted      = array();
 		$deprecated       = array();
-		$compat           = '';
-		$uses_errors      = '';
-		$compat_errors    = '';
-		$compatible       = true;
+		$is_compatible    = true;
 		$plugin_url       = admin_url( 'tools.php?page=wp-plugin-parser' );
 		$this->plugins    = get_plugins();
 		$settings         = $this->get_admin_settings();
@@ -103,7 +103,7 @@ class Admin_Page {
 				$compat        = $compat_parser->get_compat();
 				$compat_errors = $this->get_errors( $compat_parser );
 				if ( ! $compat_errors ) {
-					$compatible = ! preg_match( '/(\d*) ERRORS?/i', $compat );
+					$is_compatible = ! preg_match( '/(\d*) ERRORS?/i', $compat );
 				}
 			}
 		}
@@ -135,7 +135,7 @@ class Admin_Page {
 			$notice = sprintf( __( 'Parsed plugin: %s', 'wp-plugin-parser' ), $settings['plugin_name'] );
 		}
 
-		$warnings = ! $compatible ? $warnings + 1 : $warnings;
+		$warnings = ! $is_compatible ? $warnings + 1 : $warnings;
 
 		// Display admin form and results
 		include 'partials/admin-form.php';

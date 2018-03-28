@@ -44,12 +44,12 @@ function get_default_settings() {
 		'root'                => '',
 		'plugin_file'         => '',
 		'plugin_name'         => '',
+		'exclude_strict'      => '',
+		'wp_only'             => '',
+		'check_version'       => '',
 		'exclude_dirs'        => array(),
 		'blacklist_functions' => array(),
-		'wp_only'             => '',
-		'exclude_strict'      => '',
 		'php_version'         => '7.0',
-		'check_version'       => '',
 	);
 }
 
