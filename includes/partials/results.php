@@ -13,7 +13,13 @@
 	<?php if( $errors || $uses_errors ) : ?>
 		<li style="color: red;<?php echo $margin; ?>">
 			<span class="dashicons dashicons-no"></span>
-			<?php _e( 'Warning: This plugin is not parsed for functions and classes because of parsing errors', 'wp-plugin-parser' ); ?>
+			<?php
+				if( 0 === strpos( $uses_errors, 'The parsed plugin contains errors' ) ) {
+					_e( 'Warning: The selected plugin is not parsed because it contains errors', 'wp-plugin-parser' );
+				} else {
+					_e( 'Warning: This plugin is not parsed for functions and classes because of parsing errors', 'wp-plugin-parser' );
+				}
+			?>
 		</li>
 		<?php $margin = ''; ?>
 	<?php endif; ?>
@@ -87,7 +93,7 @@
 		<?php if ( ! $is_compatible && $compat ) : ?>
 			<li style="color: red;<?php echo $margin; ?>">
 				<span class="dashicons dashicons-no"></span>
-				<?php printf( __( 'Warning: This plugin was found not to be compatible with PHP version: %s.', 'wp-plugin-parser' ), $settings['php_version'] ); ?>
+				<?php printf( __( 'Warning: This plugin is not compatible with PHP version: %s.', 'wp-plugin-parser' ), $settings['php_version'] ); ?>
 				(<a href='<?php echo $plugin_url; ?>#compat-results'><?php _e( 'See compatibility results', 'wp-plugin-parser' ); ?></a>)
 			</li>
 			<?php $margin = ''; ?>

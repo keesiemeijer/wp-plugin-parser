@@ -9,7 +9,7 @@
 	<?php echo ' ' . __( "You'll need to inspect the plugin manually, to make sure it fails gracefully and doesn't produce fatal errors.", 'wp-plugin-parser' ); ?>
 </p>
 <p>
-	<pre style="padding: 1em; background: #fff;">
+	<pre style="padding: 1em; background: #fff; overflow: auto;">
 		<?php echo $compat; ?>
 	</pre>
 </p>

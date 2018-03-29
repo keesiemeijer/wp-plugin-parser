@@ -21,7 +21,7 @@
 <?php if ( $errors ) : ?>
 	<div class="error">
 		<p>
-			<?php _e('This plugin generated errors while retrieving files', 'wp-plugin-parser'); ?><br/><br/>
+			<?php _e( 'This plugin generated errors while retrieving files', 'wp-plugin-parser' ); ?><br/><br/>
 			<?php echo $errors; ?>
 		</p>
 	</div>
@@ -30,7 +30,9 @@
 <?php if ( ! $errors && $uses_errors ) : ?>
 	<div class="error">
 		<p>
-			<?php _e('This plugin generated errors while parsing files', 'wp-plugin-parser'); ?><br/><br/>
+			<?php if( ! ( 0 === strpos( $uses_errors, 'The parsed plugin contains errors' ) ) ) : ?>
+				<?php _e( 'This plugin generated errors while parsing files', 'wp-plugin-parser' ); ?><br/><br/>
+			<?php endif; ?>
 			<?php echo $uses_errors; ?>
 		</p>
 	</div>
@@ -39,7 +41,7 @@
 <?php if ( ! $errors && $compat_errors ) : ?>
 	<div class="error">
 		<p>
-			<?php _e('This plugin generated errors while checking PHP compatibility', 'wp-plugin-parser'); ?><br/><br/>
+			<?php _e( 'This plugin generated errors while checking PHP compatibility', 'wp-plugin-parser' ); ?><br/><br/>
 			<?php echo $compat_errors; ?>
 		</p>
 	</div>

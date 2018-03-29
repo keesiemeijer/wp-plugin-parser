@@ -21,6 +21,11 @@ class Uses_Parser {
 
 		$parsed_files = $this->parse_uses( $files, $root );
 
+		if ( $parsed_files instanceof \WP_Error ) {
+			$this->logger->log( $parsed_files->get_error_message() );
+			return false;
+		}
+
 		if ( $parsed_files ) {
 			$this->get_file_data( $parsed_files );
 		}
@@ -43,7 +48,20 @@ class Uses_Parser {
 			return false;
 		}
 
-		return \WP_Parser\parse_files( $files, $root );
+		// Parse files and catch errors.
+		ob_start();
+		$parsed_files = \WP_Parser\parse_files( $files, $root );
+		$error        = ob_get_contents();
+		ob_end_clean();
+
+		if ( $error ) {
+			return new \WP_Error(
+				'parser_error',
+				sprintf( 'The parsed plugin contains errors. %s', $error )
+			);
+		}
+
+		return $parsed_files;
 	}
 
 	public function get_uses() {

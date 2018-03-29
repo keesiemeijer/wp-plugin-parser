@@ -172,7 +172,7 @@ class Admin_Page {
 		return $settings;
 	}
 
-	function get_errors( $obj ) {
+	private function get_errors( $obj ) {
 		return implode( '<br/>', $obj->logger->get_log() );
 	}
 
