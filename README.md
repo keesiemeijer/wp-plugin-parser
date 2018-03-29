@@ -35,7 +35,7 @@ composer install
 All plugin files, functions, classes and methods are parsed to see what functions, classes and methods they use. The `since` and `deprecated` attributes are only checked for functions and classes. Meaning, methods are not (yet) flagged when `deprecated`, and are not used for calculating the `Requires at least` version.
 
 ## False positives
-This tool can't detect if a plugin actively checks for compatibility with a PHP version if it fails the PHP version check. This can lead to false positives. You'll need to inspect the plugin manually, to make sure it fails gracefully and doesn't produce errors.
+This tool can't detect if a plugin actively checks for compatibility with a PHP version. This means that if a plugin fails the compatibility check it could well be aware of this issue. You will have to inspect the plugin manually, to make sure it fails gracefully and doesn't produce errors.
 
 [PHP language constructs](https://secure.php.net/manual/en/reserved.keywords.php) like `eval()` are not picked up by the parser. This plugin finds the language constructs `die()`, `eval()` and `exit()` with a regular expression. Be aware that this can lead to false positives.
 
