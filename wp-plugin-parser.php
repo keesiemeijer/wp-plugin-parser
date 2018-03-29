@@ -7,7 +7,7 @@
  * Author URI:      https://github.com/keesiemeijer/
  * Text Domain:     wp-plugin-parser
  * Domain Path:     /languages
- * Version:         1.0.0
+ * Version:         2.0.0
  *
  * @package         WP_Plugin_Parser
  */
