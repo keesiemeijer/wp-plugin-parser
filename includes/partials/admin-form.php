@@ -5,7 +5,7 @@
 	</p>
     <?php include 'admin-notice.php'; ?>
 	<hr>
-	<form method="post" action="">
+	<form method="post" action="" id="wp-plugin-parser-form" style="margin-bottom: 1.5em;">
 		<?php wp_nonce_field( 'wp_plugin_parser_nonce', 'security' ); ?>
 		<table class='form-table'>
 			<tr>
@@ -103,8 +103,9 @@
 				</td>
 			</tr>
 		</table>
-		<input id="wp_plugin_parser" class="button button-primary" name="wp_plugin_parser" value="Parse Plugin" type="submit">
-	</form><br/>
+		<input id="wp-plugin-parser-submit" class="button button-primary" name="wp_plugin_parser" value="Parse Plugin" type="submit">
+	</form>
+	<div id="wp-plugin-parser-results">
 	<?php
 		if($request) {
 			include 'results.php';
@@ -118,4 +119,6 @@
 			}
 		}
 	?>
+	</div>
+	<div id="wp-plugin-parser-ajax-results"></div>
 </div>

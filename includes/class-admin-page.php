@@ -8,18 +8,20 @@ class Admin_Page {
 	/**
 	 * Constructor
 	 */
-	public function __construct() {
+	public function __construct( $admin_page_callback = '' ) {
+		$this->admin_page_callback = $admin_page_callback;
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 	}
 
 	public function add_admin_menu() {
+
 		$hook = add_submenu_page(
 			'tools.php',
 			__( 'WP Plugin Parser', 'wp-plugin-parser' ),
 			__( 'WP Plugin Parser', 'wp-plugin-parser' ),
 			'manage_options',
 			'wp-plugin-parser',
-			array( $this, 'admin_menu' )
+			array( $this, 'admin_menu' . $this->admin_page_callback )
 		);
 	}
 
@@ -35,7 +37,7 @@ class Admin_Page {
 
 		$old_settings = $this->get_database_settings();
 		if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
-			return $this->apply_settings_filters( $old_settings );
+			return apply_settings_filters( $old_settings );
 		}
 
 		check_admin_referer( 'wp_plugin_parser_nonce', 'security' );
@@ -53,7 +55,7 @@ class Admin_Page {
 			'check_version'       => isset( $_POST['check_version'] ) ? 'on' : '',
 		);
 
-		$settings = $this->apply_settings_filters( $settings );
+		$settings = apply_settings_filters( $settings );
 
 		if ( $old_settings != $settings ) {
 			update_option( 'wp_plugin_parser_settings', $settings );
@@ -63,6 +65,11 @@ class Admin_Page {
 		$settings['parse_request'] = true;
 
 		return $settings;
+	}
+
+	public function admin_menu_composer_fail() {
+		$install = 'https://github.com/keesiemeijer/wp-plugin-parser#installation';
+		include 'partials/admin-composer-fail.php';
 	}
 
 	public function admin_menu() {
@@ -92,7 +99,8 @@ class Admin_Page {
 			$errors = $this->get_errors( $file_parser );
 
 			if ( ! $errors && $files ) {
-				$uses_parser = new Uses_Parser( $files, $settings['root'] );
+				$uses_parser = new Uses_Parser();
+				$uses_parser->parse( $files, $settings['root'] );
 				$parsed_uses = $uses_parser->get_uses();
 				$blacklisted = $uses_parser->get_blacklisted( $settings['blacklist_functions'] );
 				$uses_errors = $this->get_errors( $uses_parser );
@@ -110,8 +118,11 @@ class Admin_Page {
 
 		if ( $request && $parsed_uses ) {
 			$file_count = count( $files );
-			$wp_parser  = new WP_Uses_Parser( $parsed_uses );
-			$wp_uses    = $wp_parser->get_uses();
+
+			$wp_parser = new WP_Uses_Parser();
+			$wp_parser->parse( $parsed_uses );
+
+			$wp_uses = $wp_parser->get_uses();
 
 			$deprecated  = array(
 				'functions' => $wp_parser->get_deprecated( 'functions' ),
@@ -139,37 +150,6 @@ class Admin_Page {
 
 		// Display admin form and results
 		include 'partials/admin-form.php';
-	}
-
-
-	private function apply_settings_filters( $settings ) {
-		foreach ( array( 'exclude_dirs', 'blacklist_functions' ) as $type ) {
-			if ( ! isset( $settings[ $type ] ) ) {
-				$settings[ $type ] = array();
-				continue;
-			}
-
-			if ( is_string( $settings[ $type ] ) ) {
-				$settings[ $type ] = explode( ',', $settings[ $type ] );
-				$settings[ $type ] = array_filter( array_unique( array_map( 'trim', $settings[ $type ] ) ) );
-			}
-
-			$settings[ $type ] = apply_filters( "wp_plugin_parser_{$type}", $settings[ $type ] );
-			$settings[ $type ] = array_filter( array_unique( array_map( 'trim', $settings[ $type ] ) ) );
-		}
-
-		// Add user directories after default excluded directories.
-		$exclude_dirs             = get_default_exclude_dirs();
-		$user_dirs                = array_diff( $settings['exclude_dirs'], $exclude_dirs );
-		$settings['exclude_dirs'] = array_unique( array_merge( $exclude_dirs, $user_dirs ) );
-
-		// Remove single '/' directory because nothing will be parsed.
-		$key = array_search( '/', $settings['exclude_dirs'] );
-		if ( false !== $key ) {
-			unset( $settings['exclude_dirs'][ $key ] );
-		}
-
-		return $settings;
 	}
 
 	private function get_errors( $obj ) {

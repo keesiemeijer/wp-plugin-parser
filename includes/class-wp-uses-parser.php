@@ -9,7 +9,11 @@ class WP_Uses_Parser {
 	/**
 	 * Constructor
 	 */
-	public function __construct( $uses ) {
+	public function __construct() {
+		$this->parse_init();
+	}
+
+	public function parse_init() {
 		$this->uses = array(
 			'functions' => array(),
 			'classes' => array(),
@@ -17,7 +21,9 @@ class WP_Uses_Parser {
 			'max_version' => '',
 			'deprecated' => 0,
 		);
+	}
 
+	public function parse( $uses ) {
 		if ( ! empty( $uses['functions'] ) ) {
 			$wp_functions = $this->get_json( 'functions' );
 			$this->set_wp_uses( $uses, $wp_functions, 'functions' );
@@ -41,7 +47,7 @@ class WP_Uses_Parser {
 	 * Get deprecated functions.
 	 *
 	 * @param array  $uses Array with parse results.
-	 * @param string $type    'functions' or 'classes'.
+	 * @param string $type 'functions' or 'classes'.
 	 * @return array Array with deprecated function or class titles.
 	 */
 	public function get_deprecated( $type ) {

@@ -53,6 +53,36 @@ function get_default_settings() {
 	);
 }
 
+function apply_settings_filters( $settings ) {
+	foreach ( array( 'exclude_dirs', 'blacklist_functions' ) as $type ) {
+		if ( ! isset( $settings[ $type ] ) ) {
+			$settings[ $type ] = array();
+			continue;
+		}
+
+		if ( is_string( $settings[ $type ] ) ) {
+			$settings[ $type ] = explode( ',', $settings[ $type ] );
+			$settings[ $type ] = array_filter( array_unique( array_map( 'trim', $settings[ $type ] ) ) );
+		}
+
+		$settings[ $type ] = apply_filters( "wp_plugin_parser_{$type}", $settings[ $type ] );
+		$settings[ $type ] = array_filter( array_unique( array_map( 'trim', $settings[ $type ] ) ) );
+	}
+
+	// Add user directories after default excluded directories.
+	$exclude_dirs             = get_default_exclude_dirs();
+	$user_dirs                = array_diff( $settings['exclude_dirs'], $exclude_dirs );
+	$settings['exclude_dirs'] = array_unique( array_merge( $exclude_dirs, $user_dirs ) );
+
+	// Remove single '/' directory because nothing will be parsed.
+	$key = array_search( '/', $settings['exclude_dirs'] );
+	if ( false !== $key ) {
+		unset( $settings['exclude_dirs'][ $key ] );
+	}
+
+	return $settings;
+}
+
 /**
  * Sort parsed results.
  *

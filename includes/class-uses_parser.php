@@ -6,11 +6,11 @@ class Uses_Parser {
 	private $uses;
 	public $logger;
 
-	public function __construct( $files, $root ) {
-		$this->parse_init( $files, $root );
+	public function __construct() {
+		$this->parse_init();
 	}
 
-	public function parse_init( $files, $root ) {
+	public function parse_init() {
 		$this->logger = new Logger();
 		$this->uses = array(
 			'functions' => array(),
@@ -18,7 +18,9 @@ class Uses_Parser {
 			'classes'   => array(),
 			'constructs' => array(),
 		);
+	}
 
+	public function parse( $files, $root ) {
 		$parsed_files = $this->parse_uses( $files, $root );
 
 		if ( $parsed_files instanceof \WP_Error ) {
@@ -41,7 +43,6 @@ class Uses_Parser {
 			$this->logger->log( __( 'WP Parser not installed', 'wp-plugin-parser' ) );
 			return false;
 		}
-
 
 		if ( ! $files || ! $root ) {
 			$this->logger->log( __( 'No files found to parse', 'wp-plugin-parser' ) );

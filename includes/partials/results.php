@@ -1,7 +1,7 @@
 <hr>
 <h2 id="parse-results">Parse Results</h2>
 <ul style="font-size: 14px;">
-	<li>
+	<li class="wp-plugin-parser-plugin">
 		<?php printf( __( 'Plugin: %s', 'wp-plugin-parser' ), '<strong>' . $settings['plugin_name'] . '</strong>' ) ; ?>
 	<li>
 	<?php if( ! $settings['check_version'] ) : ?>

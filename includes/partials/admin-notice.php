@@ -3,7 +3,7 @@
 		<p>
 			<?php echo $notice; ?>
 			<?php if ( ! $warnings ) : ?>
-				 (<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
+				 (<a class="wp-plugin-parser-results-link" href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
 			<?php endif; ?> 
 		</p>
 	</div>
@@ -13,7 +13,7 @@
 	<div class="error">
 		<p>
 			<?php printf( _n( 'This plugin generates %d warning', 'This plugin generates %d warnings', $warnings, 'wp-plugin-parser' ), $warnings ); ?> 
-			(<a href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
+			(<a class="wp-plugin-parser-results-link" href='<?php echo $plugin_url; ?>#parse-results'><?php _e( 'See parse results', 'wp-plugin-parser' ); ?></a>)
 		</p>
 	</div>
 <?php endif; ?>

@@ -5,10 +5,10 @@ class Logger {
 
 	private $logs;
 
-	public function __construct(){
+	public function __construct() {
 		$this->logs = array();
 	}
-	
+
 	/**
 	 * Public method to get log messages.
 	 *
@@ -20,6 +20,16 @@ class Logger {
 			return $this->logs[ $key ];
 		}
 		return array();
+	}
+
+	/**
+	 * Public method to get log messages.
+	 *
+	 * @param string $key Type of log message. Default 'errors'.
+	 * @return array      Array of log messages.
+	 */
+	public function clear_log() {
+		$this->logs = array();
 	}
 
 	/**
