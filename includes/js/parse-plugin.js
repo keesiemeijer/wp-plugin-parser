@@ -17,7 +17,7 @@
 	var backLink = $( '<a href="' + parser.plugin_url + '">' + parser.backlink + '</a>' );
 	backLink.addClass( 'wp-plugin-parser-backlink' );
 
-	// Remove server side rendered results (if it exists)
+	// Remove server side rendered results (if they exists)
 	$( '#wp-plugin-parser-results' ).empty();
 	$( '.error,.updated' ).hide();
 
@@ -39,16 +39,17 @@
 	// Start Parsing
 	submit.on( 'click', function( e ) {
 		e.preventDefault();
+
 		if ( processing ) {
 			return;
 		}
 
+		processing = true;
 		resetForm();
 		form.hide();
 
-		processing = true;
-		pluginName = $( "select#plugins option:selected", ).text();
-		templateData.header = addPluginName( parser.files_load );
+		pluginName = $( "select#plugins", form ).find( ':selected' ).text();
+		templateData.header = parser.load_files;
 		templateData.content = parser.notice;
 		updateTemplate();
 
@@ -57,9 +58,8 @@
 			scrollTop: pos.top - wpAdminBar
 		}, 1 );
 
-		var checkBoxes = $( form ).find( 'input:checkbox' );
-
 		// Reset checkboxes (needed for serialize())
+		var checkBoxes = $( form ).find( 'input:checkbox' );
 		checkBoxes.prop( 'value', '' );
 		checkBoxes.filter( ':checked' ).prop( 'value', 'on' );
 
@@ -97,7 +97,6 @@
 				setTimeout( function() {
 					parseWordPressUses();
 				}, 2000 );
-
 			} else {
 				parseUses();
 			}
@@ -106,7 +105,7 @@
 		} );
 	}
 
-	// Parse WordPress functions, methods, classes
+	// Parse WordPress data
 	function parseWordPressUses() {
 		wp.ajax.send( 'parse_wp_uses', {
 			data: { nonce: parser.wp_uses_nonce }
@@ -125,7 +124,8 @@
 			$( '.wp-plugin-parser-spinner' ).hide();
 
 			templateData.content = response.content;
-			templateData.subheader = parser.finished;
+			var icon = '<span style="color:green;" class="dashicons dashicons-yes"></span>'
+			templateData.subheader = icon + parser.finished;
 			updateTemplate();
 
 			$( '.wp-plugin-parser-plugin', htmlAjax ).hide();
@@ -178,7 +178,8 @@
 	}
 
 	function addPluginName( string ) {
-		return string.replace( '%s', '<strong>' + pluginName + '</strong>' );
+		var plugin = pluginName || '';
+		return string.replace( '%s', '<strong>' + plugin + '</strong>' );
 	}
 
 	function updateParseMessage( count ) {
@@ -189,5 +190,4 @@
 		var content = parser.parse_file;
 		return content.replace( '%1$d', count ).replace( '%2$d', total );
 	}
-
 } )( jQuery );

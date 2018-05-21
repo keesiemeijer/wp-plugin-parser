@@ -26,7 +26,7 @@
 	<p id="wp-plugin-parser-plugin">{{{data.plugin}}}</p>
 
 	<# if ( data.subheader.length ) { #>
-		<p id="wp-plugin-parser-subheader">{{data.subheader}}</p>
+		<p id="wp-plugin-parser-subheader">{{{data.subheader}}}</p>
 	<# } #>
 
 	<# if ( data.errors.length ) { #>
