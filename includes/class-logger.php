@@ -23,7 +23,7 @@ class Logger {
 	}
 
 	/**
-	 * Public method to get log messages.
+	 * Public method to reset log.
 	 *
 	 * @param string $key Type of log message. Default 'errors'.
 	 * @return array      Array of log messages.

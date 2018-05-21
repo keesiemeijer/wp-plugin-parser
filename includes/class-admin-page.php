@@ -14,7 +14,6 @@ class Admin_Page {
 	}
 
 	public function add_admin_menu() {
-
 		$hook = add_submenu_page(
 			'tools.php',
 			__( 'WP Plugin Parser', 'wp-plugin-parser' ),
@@ -94,20 +93,25 @@ class Admin_Page {
 		$php_versions     = get_php_versions();
 
 		if ( $request ) {
-			$file_parser = new File_Parser( $settings );
+			$file_parser = new File_Parser();
+			$file_parser->parse( $settings);
+
 			$files  = $file_parser->get_files();
 			$errors = $this->get_errors( $file_parser );
 
 			if ( ! $errors && $files ) {
 				$uses_parser = new Uses_Parser();
 				$uses_parser->parse( $files, $settings['root'] );
+
 				$parsed_uses = $uses_parser->get_uses();
 				$blacklisted = $uses_parser->get_blacklisted( $settings['blacklist_functions'] );
 				$uses_errors = $this->get_errors( $uses_parser );
 			}
 
 			if ( ! $errors && $files && $settings['check_version'] ) {
-				$compat_parser = new PHP_Compat_Parser( $files, $settings['php_version'] );
+				$compat_parser = new PHP_Compat_Parser();
+				$compat_parser->parse( $files, $settings['php_version'] );
+
 				$compat        = $compat_parser->get_compat();
 				$compat_errors = $this->get_errors( $compat_parser );
 				if ( ! $compat_errors ) {
@@ -121,7 +125,6 @@ class Admin_Page {
 
 			$wp_parser = new WP_Uses_Parser();
 			$wp_parser->parse( $parsed_uses );
-
 			$wp_uses = $wp_parser->get_uses();
 
 			$deprecated  = array(

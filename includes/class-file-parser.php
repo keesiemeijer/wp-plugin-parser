@@ -24,8 +24,8 @@ class File_Parser {
 	 */
 	private $files;
 
-	public function __construct( $settings ) {
-		$this->init( $settings );
+	public function __construct() {
+		$this->parse_init();
 	}
 
 	/**
@@ -33,20 +33,15 @@ class File_Parser {
 	 *
 	 * @param array $settings Settings.
 	 */
-	public function init( $settings ) {
-		$defaults = array(
+	public function parse_init() {
+		$this->settings = array(
 			'root'           => '',
 			'exclude_dirs'   => array(),
 			'exclude_strict' => false,
 		);
 
-		$settings = is_array( $settings ) ? $settings : array();
-		$this->settings = array_merge( $defaults, (array) $settings );
-
 		$this->logger = new Logger();
 		$this->files  = null;
-
-		$this->files_init();
 	}
 
 	/**
@@ -65,7 +60,10 @@ class File_Parser {
 	 *
 	 * @return false|void Returns false if files are not found.
 	 */
-	private function files_init() {
+	public function parse( $settings ) {
+		$settings = is_array( $settings ) ? $settings : array();
+		$this->settings = array_merge( $this->settings, (array) $settings );
+
 		if ( ! $this->settings['root'] ) {
 			$this->logger->log( __( "Root directory not found", 'wp-plugin-parser' ) );
 			return false;

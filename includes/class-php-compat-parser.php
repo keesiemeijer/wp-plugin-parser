@@ -6,12 +6,16 @@ class PHP_Compat_Parser {
 	public $compat;
 	public $logger;
 
-	public function __construct( $files, $version ) {
-		$this->parse_init( $files, $version );
+	public function __construct() {
+		$this->parse_init();
 	}
 
-	public function parse_init( $files, $version ) {
+	public function parse_init() {
 		$this->logger = new Logger();
+		$this->compat = '';
+	}
+
+	public function parse( $files, $version ) {
 		$this->compat = $this->parse_compatibility( $files, $version );
 	}
 
