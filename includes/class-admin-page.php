@@ -24,17 +24,9 @@ class Admin_Page {
 		);
 	}
 
-	public function get_database_settings() {
-		$defaults = get_default_settings();
-		$settings = get_option( 'wp_plugin_parser_settings' );
-		$settings = is_array( $settings ) ? $settings : $defaults;
-
-		return array_merge( $defaults, $settings );
-	}
-
 	private function get_admin_settings() {
 
-		$old_settings = $this->get_database_settings();
+		$old_settings = get_database_settings();
 		if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
 			return apply_settings_filters( $old_settings );
 		}

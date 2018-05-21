@@ -53,6 +53,20 @@ function get_default_settings() {
 	);
 }
 
+function get_database_settings() {
+	$defaults = get_default_settings();
+	$settings = get_option( 'wp_plugin_parser_settings' );
+	$settings = is_array( $settings ) ? $settings : $defaults;
+
+	return array_merge( $defaults, $settings );
+}
+
+/**
+ * Filter exclude_dirs and blacklist_functions admin settings
+ *
+ * @param  array $settings Admin settings.
+ * @return array Filtered admin settings.
+ */
 function apply_settings_filters( $settings ) {
 	foreach ( array( 'exclude_dirs', 'blacklist_functions' ) as $type ) {
 		if ( ! isset( $settings[ $type ] ) ) {
