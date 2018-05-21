@@ -19,23 +19,25 @@ class Parser_Ajax {
 	 * Handles adding hooks to enable ajax parsing.
 	 */
 	public function do_init() {
-		$this->expire = HOUR_IN_SECONDS * 2;
+		$this->expire = HOUR_IN_SECONDS * 4;
 		$this->fail   = __( 'Parsing failed.', 'wp-plugin-parser' );
 
-		// Ajax actions to process request
+		// Ajax actions to process request.
 		add_action( "wp_ajax_parse_files", array( $this, "parse_files" ) );
 		add_action( "wp_ajax_parse_uses", array( $this, "parse_uses" ) );
 		add_action( "wp_ajax_parse_wp_uses", array( $this, "parse_wp_uses" ) );
 		add_action( "wp_ajax_display_results", array( $this, "display_results" ) );
 
-		// Enqueue scripts and styles
+		// Enqueue scripts and styles.
 		add_action( 'admin_enqueue_scripts', array( $this, 'scripts_and_styles' ), 11 );
+
+		// Add Javasctipt template in the footer.
 		add_action( "admin_footer", array( $this, 'parse_template' ) );
 	}
 
 
 	/**
-	 * Add a progress bar template for Javascript to the footer.
+	 * Add a template for Javascript to the footer.
 	 */
 	function parse_template() {
 		include_once plugin_dir_path( __FILE__ ) . "/partials/parse-template.php";
@@ -56,7 +58,7 @@ class Parser_Ajax {
 				'display_nonce' => wp_create_nonce( 'display_results_nonce' ),
 				'parse_file'    => __( 'Parsing file %1$d of %2$d...', 'wp-plugin-parser' ),
 				'start'         => __( 'Parsing plugin', 'wp-plugin-parser' ),
-				'files_load'    => __( 'Loading plugin files', 'wp-plugin-parser' ),
+				'load_files'    => __( 'Loading plugin files', 'wp-plugin-parser' ),
 				'finished'      => __( 'Finished parsing!', 'wp-plugin-parser' ),
 				'backlink'      => __( 'Back to plugin form', 'wp-plugin-parser' ),
 				'plugin'        => __( 'Plugin: %s', 'wp-plugin-parser' ),
@@ -83,7 +85,7 @@ class Parser_Ajax {
 	}
 
 	/**
-	 * Ajax action to get the admin page form settings.
+	 * Ajax action to get the plugin files and admin settings.
 	 */
 	public function parse_files( ) {
 		check_ajax_referer( 'parse_files_nonce', 'nonce' );
@@ -117,20 +119,24 @@ class Parser_Ajax {
 		$form_data['plugin_file'] = $plugin;
 		$form_data['plugin_name'] = $plugin_name;
 		$form_data                = apply_settings_filters( $form_data );
-		$file_parser              = new File_Parser( $form_data );
-		$files                    = $file_parser->get_files();
-		$errors                   = $file_parser->logger->get_log();
-		$total                    = count( $files );
+		
+		$file_parser = new File_Parser();
+		$file_parser->parse($form_data);
+
+		$files  = $file_parser->get_files();
+		$errors = $file_parser->logger->get_log();
+		$total  = count( $files );
 
 		if ( $errors ) {
 			array_unshift( $errors , $this->fail );
 			wp_send_json_error( array( 'errors' => $errors ) );
 		}
 
-		$defaults = get_default_settings();
-		$option   = array_intersect_key( $form_data, $defaults );
-		if ( $option ) {
-			update_option( 'wp_plugin_parser_settings', $option );
+		// Save admin settings.
+		$settings     = array_intersect_key( $form_data, $defaults );
+		$old_settings = get_database_settings();
+		if ( $old_settings != $settings ) {
+			update_option( 'wp_plugin_parser_settings', $settings );
 		}
 
 		$data = array(
@@ -138,7 +144,6 @@ class Parser_Ajax {
 			'files'    => $files,
 			'total'    => $total,
 		);
-
 
 		$data = array_merge( $this->get_defaults(), $data );
 
@@ -185,6 +190,7 @@ class Parser_Ajax {
 		if ( ! $errors && $file ) {
 			$parser = new Uses_Parser();
 			$parser->parse( array( $file ), $form['root'] );
+
 			$parsed_uses     = $parser->get_uses();
 			$blacklisted_new = $parser->get_blacklisted( $form['blacklist_functions'] );
 			$blacklisted     = array_merge( $blacklisted, $blacklisted_new );
@@ -197,15 +203,18 @@ class Parser_Ajax {
 		}
 
 		if ( ! $errors && $file && $form['check_version'] ) {
-			$compat_parser = new PHP_Compat_Parser( array( $file ), $form['php_version'] );
-			$compat        = $compat_parser->get_compat();
-			$errors        = $compat_parser->logger->get_log();
+			$compat_parser = new PHP_Compat_Parser();
+			$compat_parser->parse( array( $file ), $form['php_version'] );
+
+			$compat = $compat_parser->get_compat();
+			$errors = $compat_parser->logger->get_log();
 			if ( ! $errors ) {
 				$is_compatible = ! preg_match( '/(\d*) ERRORS?/i', $compat );
 			}
 		}
 
 		if ( $errors ) {
+			$this->delete_transients();
 			array_unshift( $errors , $this->fail );
 			wp_send_json_error( array( 'errors' => $errors ) );
 		}
@@ -239,8 +248,6 @@ class Parser_Ajax {
 			$data['done'] = true;
 		}
 
-		$data['uses'] = $uses;
-
 		wp_send_json_success( $data );
 	}
 
@@ -272,8 +279,9 @@ class Parser_Ajax {
 
 			if ( $blacklisted || $parsed_wp_uses['deprecated'] ) {
 				// Moves blacklisted and deprecated to the top.
+				// Adds warnings to $parsed_uses object.
 				$parsed_uses = sort_results( $parsed_uses, $deprecated, $blacklisted );
-				if ( $parsed_uses['warnings'] ) {
+				if ( isset( $parsed_uses['warnings'] ) && $parsed_uses['warnings'] ) {
 					$parsed_uses['warnings'] = array_merge( $warnings, $parsed_uses['warnings'] );
 					$parsed_uses['warnings'] = array_unique( $parsed_uses['warnings'] );
 				}
@@ -293,7 +301,7 @@ class Parser_Ajax {
 		set_transient( 'wp_plugin_parser_ajax_wp_uses', $data_wp_uses, $this->expire );
 
 		$data = array(
-			'uses' => $parsed_uses,
+			'finished_parsing' => true,
 		);
 
 		wp_send_json_success( $data );
@@ -302,12 +310,14 @@ class Parser_Ajax {
 	function display_results() {
 		check_ajax_referer( 'display_results_nonce', 'nonce' );
 
-		$ajax = get_transient( 'wp_plugin_parser_ajax' );
-		$uses = get_transient( 'wp_plugin_parser_ajax_uses' );
+		$ajax    = get_transient( 'wp_plugin_parser_ajax' );
+		$uses    = get_transient( 'wp_plugin_parser_ajax_uses' );
 		$wp_uses = get_transient( 'wp_plugin_parser_ajax_wp_uses' );
 
+		// Delete the transients after the request.
+		$this->delete_transients();
+
 		if ( ! ( is_array( $ajax ) && is_array( $uses ) && is_array( $wp_uses ) ) ) {
-			$this->delete_transients();
 			$errors = $this->fail . ' ' . __( 'No parsed data found.', 'wp-plugin-parser' );
 			wp_send_json_error( array( 'errors' => array( $errors ) ) );
 		}
@@ -316,11 +326,10 @@ class Parser_Ajax {
 		$deprecated  = isset( $wp_uses['deprecated'] ) ? $wp_uses['deprecated'] : array();
 		$parsed_uses = isset( $uses['uses'] ) ? $uses['uses'] : array();
 		$wp_uses     = isset( $wp_uses['uses'] ) ? $wp_uses['uses'] : array();
-		$settings    = isset( $ajax['settings'] ) ? $ajax['settings'] : array();
 		$file_count  = isset( $ajax['total'] ) ? $ajax['total'] : 0;
+		$settings    = isset( $ajax['settings'] ) ? $ajax['settings'] : array();
 
 		if ( ! $parsed_uses || ! $wp_uses || ! $settings || ! $deprecated ) {
-			$this->delete_transients();
 			$errors = $this->fail . ' ' . __( 'No parsed results found.', 'wp-plugin-parser' );
 			wp_send_json_error( array( 'errors' => array( $errors ) ) );
 		}
@@ -329,8 +338,8 @@ class Parser_Ajax {
 		$uses_errors   = '';
 		$compat_errors = '';
 		$is_compatible = isset( $ajax['is_compatible'] ) ? $ajax['is_compatible'] : true;
-		$compat = isset( $ajax['compat'] ) ? $ajax['compat'] : array();
-		$compat = implode( '<br/>', $compat );
+		$compat        = isset( $ajax['compat'] ) ? $ajax['compat'] : array();
+		$settings      = array_merge( get_default_settings(), $settings );
 
 		$show_construct_info = ! empty( $parsed_uses['constructs'] );
 		if ( $show_construct_info && $settings['wp_only'] ) {
@@ -340,16 +349,18 @@ class Parser_Ajax {
 			$show_construct_info = ! empty( $show_construct_info );
 		}
 
+
 		ob_start();
 		include 'partials/results.php';
 		include 'partials/parse-results.php';
 		if ( $settings['check_version'] && $compat ) {
+			$compat = implode( '<br/>', $compat );
 			include 'partials/compat.php';
 		}
 
 		$content = ob_get_clean();
 
-		wp_send_json_success( array( 'successs' => true, 'content' => $content ) );
+		wp_send_json_success( array( 'content' => $content ) );
 	}
 
 	function merge_settings( $settings, $new_settings, $name = 'uses' ) {
