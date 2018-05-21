@@ -12,6 +12,7 @@ if ( $composer && is_admin() ) {
 	if ( is_admin() ) {
 		require WP_PLUGIN_PARSER_PLUGIN_DIR . 'includes/class-admin-page.php';
 
+		// Admin page with admin notice and link to installation documentation.
 		new Admin_Page( '_composer_fail' );
 	}
 }
