@@ -41,5 +41,7 @@ This tool can't detect if a plugin actively checks for compatibility with a PHP 
 
 ## Settings Page.
 The settings page for this plugin is at `wp-admin` > `Tools` > `WP Plugin Parser`.
+![admin-page](https://user-images.githubusercontent.com/1436618/40302493-85317944-5cef-11e8-813d-608e58fc4c31.png)
 
-![settings-page](https://user-images.githubusercontent.com/1436618/37988701-e12e5f96-3201-11e8-9b73-9f4cae281b19.png)
+## Parse Results
+![parse-results](https://user-images.githubusercontent.com/1436618/40302505-8cb0c436-5cef-11e8-926c-57adb5f2fd25.png)
