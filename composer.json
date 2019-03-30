@@ -20,13 +20,13 @@
 	"require"    : {
 		"php"                      : ">=5.4",
 		"wordpress/phpdoc-parser"  : "dev-master",
-		"squizlabs/php_codesniffer": "2.9.*",
-		"wimg/php-compatibility": "^8",
+		"squizlabs/php_codesniffer": "^3.3.0",
+		"phpcompatibility/php-compatibility": "^9.0",
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.4.4"
 	},
 	"scripts": {
-   		"post-install-cmd": "vendor/bin/phpcs --config-set installed_paths ../../wimg/php-compatibility",
-    	"post-update-cmd" : "vendor/bin/phpcs --config-set installed_paths ../../wimg/php-compatibility"
+   		"post-install-cmd": "vendor/bin/phpcs --config-set installed_paths ../../phpcompatibility/php-compatibility",
+    	"post-update-cmd" : "vendor/bin/phpcs --config-set installed_paths ../../phpcompatibility/php-compatibility"
 	},
 	"extra": {
 		"installer-paths": {
