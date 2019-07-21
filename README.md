@@ -1,9 +1,9 @@
 # WP Plugin Parser
 
-Version: 2.0.0  
+Version: 5.2.0  
 Requires at least: 4.0  
-Tested up to: 4.9  
-Parsed JSON: 4.9
+Tested up to: 5.2  
+Parsed JSON: 5.2
 
 This WordPress plugin lets you see what functions, classes and methods are used by plugins.
 
